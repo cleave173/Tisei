@@ -1,0 +1,11 @@
+[
+  {"code": "first_lesson",   "name": "First Step",   "description": "Complete your first lesson",      "requirement_value": 1,    "stars": 1},
+  {"code": "studious_10",    "name": "Studious",     "description": "Complete 10 lessons",             "requirement_value": 10,   "stars": 2},
+  {"code": "studious_50",    "name": "Scholar",      "description": "Complete 50 lessons",             "requirement_value": 50,   "stars": 3},
+  {"code": "quickie",        "name": "Quickie",      "description": "Finish a lesson in under 2 min",  "requirement_value": 120,  "stars": 1},
+  {"code": "ambitious",      "name": "Ambitious",    "description": "Earn 1000 XP",                    "requirement_value": 1000, "stars": 3},
+  {"code": "streak_7",       "name": "On Fire",      "description": "7-day learning streak",           "requirement_value": 7,    "stars": 2},
+  {"code": "streak_30",      "name": "Unstoppable",  "description": "30-day learning streak",          "requirement_value": 30,   "stars": 3},
+  {"code": "vocab_100",      "name": "Word Hunter",  "description": "Master 100 words",                "requirement_value": 100,  "stars": 2},
+  {"code": "translator_50",  "name": "Polyglot",     "description": "Use the translator 50 times",     "requirement_value": 50,   "stars": 2}
+]

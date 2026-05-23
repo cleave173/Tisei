@@ -1,0 +1,60 @@
+name: tisei
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tisei}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tisei}
+      POSTGRES_DB: ${POSTGRES_DB:-tisei}
+    ports:
+      - "5433:5432"
+    volumes:
+      - tisei_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tisei} -d ${POSTGRES_DB:-tisei}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-tisei}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tisei}
+      POSTGRES_DB: ${POSTGRES_DB:-tisei}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      YANDEX_TRANSLATE_API_KEY: ${YANDEX_TRANSLATE_API_KEY:-}
+      YANDEX_FOLDER_ID: ${YANDEX_FOLDER_ID:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../backend:/code
+
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    restart: unless-stopped
+    environment:
+      LT_LOAD_ONLY: ${LT_LOAD_ONLY:-en,ru,kk,es,de,fr,zh}
+      LT_DISABLE_WEB_UI: "false"
+    ports:
+      - "5001:5000"
+    volumes:
+      - tisei_lt_models:/home/libretranslate/.local
+
+volumes:
+  tisei_pg:
+  tisei_lt_models:

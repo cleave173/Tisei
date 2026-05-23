@@ -1,0 +1,58 @@
+Tisei — execution plan
+======================
+
+[x] Step 1 — Project skeleton
+    - Flutter app (com.tisei.app) with Clean Architecture folders
+    - FastAPI backend with v1 router + endpoint stubs
+    - docker-compose: postgres + backend + libretranslate
+    - i18n bundles for en/ru/kk
+    - Theme + go_router + bottom nav shell
+    - Translator endpoint proxying LibreTranslate
+
+[x] Step 2 — DB models + Alembic + EN seed
+    - 15 tables: users/profiles/refresh_tokens, languages/topics/words,
+      lessons/questions, user_progress/question_attempts/user_word_progress (SRS),
+      achievements/user_achievements, translations_history
+    - Alembic 0001_initial.py migration with 5 enum types
+    - Seeds: 20 topics, 200 words (10 per topic) with IPA + ru/kk + examples
+    - Auto-generated 20 vocabulary lessons × 10 multiple_choice questions each (200 questions)
+    - 9 achievements seeded
+    - Idempotent seeder via Postgres ON CONFLICT
+    - Makefile with up / migrate / seed / reset-db helpers
+[x] Step 3 — Auth end-to-end
+    - Backend: bcrypt + JWT (access+refresh w/ rotation), Google id_token verification
+    - Endpoints: POST /auth/register|login|google|refresh, GET /users/me
+    - Flutter: AuthRepository, AuthController (initial/auth/unauth), bootstrap on splash
+    - Login + Register pages call API; google_sign_in integration; secure storage for tokens
+[x] Step 4 — i18n + theming + secure storage
+    - en/ru/kk JSON bundles with full key parity
+    - Settings: language picker (modal), theme follows system
+    - flutter_secure_storage holds access+refresh tokens; Dio interceptor injects Bearer
+[x] Step 5 — Learning API + screens
+    - GET /languages, /languages/{code}/topics (with word/lesson counts), /lessons/by-topic/{id}, /lessons/{id}
+    - Flutter: HomePage (XP/level card + topics), LearningPage, TopicPage, lessonProvider
+[x] Step 6 — Quiz engine
+    - LessonPage handles all 3 question types: multiple_choice / text_input / fill_blanks
+    - Green/red feedback panels matching design
+    - POST /lessons/{id}/submit with grading + XP award
+[x] Step 7 — Translator Text
+    - LangPairBar, /translator/text proxy through LibreTranslate
+    - flutter_tts to read translation aloud, copy to clipboard
+[x] Step 8 — Translator Voice
+    - speech_to_text with two mic buttons (source/target)
+    - Chat-style bubbles, original + translation, TTS playback
+[x] Step 9 — Translator Camera
+    - google_mlkit_text_recognition on device, image_picker for camera/gallery
+    - Recognized text + translation displayed; mode='camera' saved in history
+[x] Step 10 — History + Favorites
+    - GET/DELETE /translator/history, POST /translator/history/{id}/favorite
+    - Two tabs reuse single TranslatorHistoryTab(favoritesOnly: bool)
+[x] Step 11 — Profile / Settings / Achievements / Search
+    - ProfilePage with avatar, level/XP/streak, logout
+    - Achievements list with progress bars + stars (GET /achievements)
+    - Search filters topics client-side
+[~] Step 12 — Polish (deferred)
+    - Theme mode toggle persistence (currently follows system)
+    - SRS review screen (DB ready: user_word_progress, ease_factor, next_review_at)
+    - Push notifications (Android permission + FCM token already sketched)
+    - Word audio synthesis to S3/MinIO (currently word.audio_url=null)

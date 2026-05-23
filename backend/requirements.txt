@@ -1,0 +1,21 @@
+fastapi==0.115.4
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+pydantic[email]==2.9.2
+pydantic-settings==2.6.1
+SQLAlchemy==2.0.36
+asyncpg==0.30.0
+alembic==1.13.3
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart==0.0.12
+httpx==0.27.2
+google-auth==2.35.0
+python-dotenv==1.0.1
+# OCR fallback (optional)
+# pytesseract==0.3.13
+# STT (Whisper). Comment out if you don't need backend STT yet.
+# faster-whisper==1.0.3
+# Vocabulary import: IPA generation from CMU Pronouncing Dictionary (offline)
+eng_to_ipa==0.0.2

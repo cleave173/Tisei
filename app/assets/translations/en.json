@@ -1,0 +1,267 @@
+{
+  "app": {
+    "name": "Tisei",
+    "tagline": "Learn languages with a pocket translator"
+  },
+  "common": {
+    "next": "Next",
+    "skip": "Skip",
+    "finish": "Finish",
+    "cancel": "Cancel",
+    "save": "Save",
+    "retry": "Retry",
+    "ok": "OK",
+    "check": "Check",
+    "clear_all": "Clear all",
+    "play": "Play",
+    "all": "All"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "age": "Age",
+    "login_with_google": "Continue with Google",
+    "fill_all_fields": "Please fill in all fields correctly (password ≥ 6 chars)"
+  },
+  "nav": {
+    "learn": "Learn",
+    "search": "Vocabulary",
+    "translation": "Translate",
+    "achievement": "Awards",
+    "profile": "Profile"
+  },
+  "home": {
+    "title": "Hi, {}!",
+    "available_courses": "Available courses",
+    "games_title": "Play to learn",
+    "games_subtitle": "Word games on any topic you choose"
+  },
+  "learning": {
+    "introduction": "Introduction",
+    "grammar": "Grammar",
+    "vocabulary": "Vocabulary",
+    "learn_now": "Learn Now",
+    "no_lessons": "No lessons yet",
+    "no_words": "No words for this filter",
+    "words": "Words",
+    "lessons": "Lessons",
+    "lesson_n": "Lesson {}",
+    "lesson_subtitle": "{} words · {}/{} stages"
+  },
+  "lesson": {
+    "title_n": "Lesson {}",
+    "header_title": "Lesson {}",
+    "header_subtitle": "{} words to learn",
+    "stages_label": "stages",
+    "stage_cards": "Vocabulary",
+    "stage_cards_sub": "Review {} flashcards (tap to flip)",
+    "stage_listening": "Listening",
+    "stage_listening_sub": "Type the word you hear",
+    "stage_mc": "Translation test",
+    "stage_mc_sub": "Pick the correct translation",
+    "stage_speaking": "Speaking",
+    "stage_speaking_sub": "Pronounce each word",
+    "tests_locked_hint": "Review all flashcards first to unlock the tests.",
+    "completed_badge": "Lesson completed · +{} XP",
+    "back_to_overview": "Back to vocabulary",
+    "exit_to_overview": "Back to vocabulary",
+    "xp_earned": "+{} XP earned!"
+  },
+  "cards": {
+    "tap_to_flip": "Tap to flip",
+    "tap_to_flip_back": "Tap to flip back",
+    "tap_card_hint": "Tap a card to flip",
+    "translation": "TRANSLATION",
+    "example": "EXAMPLE",
+    "unlock_tests": "Unlock tests"
+  },
+  "listening": {
+    "prompt": "Listen and type the word you hear",
+    "input_hint": "Type the word…",
+    "feedback_correct": "Correct!",
+    "feedback_wrong": "Not quite — listen again",
+    "reveal": "Reveal answer",
+    "revealed_msg": "Tap Skip to move to the next word.",
+    "done_title": "Listening complete",
+    "done_msg": "You typed all {} words!"
+  },
+  "mc": {
+    "prompt": "What does this word mean?",
+    "correct_was": "Correct answer: {}",
+    "done_pass": "Test passed!",
+    "done_fail": "Not enough correct — try again",
+    "no_translations": "This lesson has no translations to test against."
+  },
+  "speaking": {
+    "title": "Speaking practice",
+    "practice_btn": "Speak",
+    "tap_to_record": "Tap the mic and pronounce the word",
+    "tap_to_speak": "Tap to speak",
+    "tap_to_stop": "Stop",
+    "evaluating": "Evaluating…",
+    "mic_unavailable": "Mic unavailable",
+    "pass_msg": "Above {}% — well done!",
+    "try_again_msg": "Need {}%+ to pass. Try again.",
+    "all_done": "You finished all {} words!",
+    "restart": "Start over",
+    "stage_pass": "Speaking stage passed!",
+    "stage_fail": "Not enough correct — try the speaking stage again",
+    "feedback": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "close": "Close",
+      "try_again": "Try again",
+      "no_speech_detected": "No speech detected"
+    }
+  },
+  "quiz": {
+    "correct": "Amazing! That's right!",
+    "wrong": "Ups.. that's wrong",
+    "completed": "Lesson completed!",
+    "try_again": "Try again",
+    "score_summary": "{} of {} correct · +{} XP",
+    "listen": "Listen",
+    "type_answer": "Type your answer"
+  },
+  "translator": {
+    "title": "Translator",
+    "text": "Text",
+    "voice": "Voice",
+    "camera": "Camera",
+    "history": "History",
+    "favorites": "Favorites",
+    "translate": "Translate",
+    "input_hint": "Enter text...",
+    "recognized": "Recognized text",
+    "translation": "Translation",
+    "gallery": "Gallery",
+    "no_history": "No translations yet",
+    "no_favorites": "No favorites yet",
+    "stt_unavailable": "Speech recognition unavailable on this device"
+  },
+  "profile": {
+    "title": "Profile",
+    "placeholder": "Profile",
+    "level": "Level",
+    "xp": "XP",
+    "streak": "Streak",
+    "achievements": "Achievements",
+    "logout": "Log out"
+  },
+  "settings": {
+    "title": "Settings",
+    "app_language": "App language",
+    "dark_mode": "Dark mode",
+    "color_palette": "Color theme",
+    "palette_ocean": "Ocean",
+    "palette_forest": "Forest",
+    "palette_purple": "Purple",
+    "palette_sunset": "Sunset",
+    "palette_rose": "Rose",
+    "palette_teal": "Teal",
+    "palette_golden": "Gold",
+    "palette_indigo": "Indigo"
+  },
+  "achievements": { "title": "Achievements", "placeholder": "Awards" },
+  "search": {
+    "title": "Search",
+    "hint": "Search topics",
+    "placeholder": "Type to search",
+    "not_found": "Not found"
+  },
+  "vocabulary": {
+    "title": "Vocabulary",
+    "search_hint": "Search by word or translation",
+    "empty": "No words found"
+  },
+  "assessment": {
+    "placement_title": "Placement Test",
+    "level_up_title": "Level-Up Test",
+    "level_up_subtitle": "Level Up from {}",
+    "translate_word": "Choose the correct translation",
+    "question_of": "Question {} of {}",
+    "placement_done": "Your level has been set!",
+    "level_up_passed": "Congratulations! You levelled up!",
+    "level_up_failed": "Not quite — keep practising!",
+    "level_up_new_level": "You are now {}",
+    "level_up_try_again": "Try again in 24 hours.",
+    "score_summary": "{} of {} correct",
+    "breakdown": "Score by level",
+    "placement_cta": "Take the placement test to set your level",
+    "level_up_cta": "Ready to level up to {}? Take the test!",
+    "go_home": "Back to Home",
+    "placement_intro_title": "What's your English level?",
+    "placement_intro_body": "Answer a few vocabulary questions to find your starting point. The test takes about 5 minutes.",
+    "take_test": "Take the placement test",
+    "skip_to_beginner": "Start from the very beginning",
+    "answer_honestly": "Please answer honestly — don't guess!",
+    "level_up_locked": "Level {} is locked",
+    "complete_more_topics": "Complete {} more topic(s) to unlock the level-up test"
+  },
+  "character": {
+    "title": "Character",
+    "scenario_lesson_completed": "Lesson completed",
+    "scenario_test_passed": "Test passed",
+    "scenario_test_failed": "Test failed",
+    "msg_lesson_completed": "Excellent! 🎉",
+    "msg_test_passed": "Well done! ⭐",
+    "msg_test_failed": "Don't give up! 💪",
+    "sub_lesson_completed": "You've completed the lesson!",
+    "tap_dismiss": "tap anywhere to dismiss",
+    "sub_test_passed": "You passed the test!",
+    "sub_test_failed": "Keep practising, you'll get it!",
+    "default_label": "Default",
+    "custom_image": "Custom image",
+    "upload": "Upload image",
+    "remove": "Remove"
+  },
+  "games": {
+    "title": "Games",
+    "choose_mode": "Pick a mode",
+    "custom_topic_hint": "Type any topic and AI will build the game around it — or skip for a default round.",
+    "topic_placeholder": "e.g. ocean, cooking, space…",
+    "default_mode": "Default",
+    "ai_mode": "AI topic",
+    "done": "Well done!",
+    "mistakes": "Mistakes: {}",
+    "score": "Score: {} / {}",
+    "play_again": "Play again",
+    "show_answer": "Answer: {}",
+    "correct_answer": "Correct: {}",
+    "rules": "How to play",
+    "level_pick": "Word level",
+    "level_any": "Any level",
+    "level_any_hint": "Mix words from beginner to advanced",
+    "level_my": "My level ({})",
+    "level_my_hint": "Words at your current CEFR level",
+    "level_explicit": "Or pick a specific level:",
+    "word_match": {
+      "title": "Word Match",
+      "subtitle": "Pair words with translations",
+      "rules": "Tap a word in the left column, then its matching translation on the right. Correct pairs turn green and lock in. Mismatches reset — try to make zero mistakes!"
+    },
+    "word_scramble": {
+      "title": "Word Scramble",
+      "subtitle": "Unscramble the letters",
+      "rules": "You’ll see a translation and a pile of shuffled letters. Tap letters in the right order to spell the original word. Tap a placed letter to send it back. Earn one point per word."
+    },
+    "sentence_builder": {
+      "title": "Sentence Builder",
+      "subtitle": "Arrange words into a sentence",
+      "rules": "Read the translation, then tap the shuffled words in the correct order to build the original sentence. Use the Check button when ready. Punctuation stays attached to the words."
+    },
+    "hangman": {
+      "title": "Hangman",
+      "subtitle": "Guess the word letter by letter",
+      "hint": "Hint: {}",
+      "win": "You saved them!",
+      "lose": "Game over",
+      "translation_was": "Translation: {}",
+      "word_was": "The word was {} ({})",
+      "rules": "Guess the hidden word one letter at a time. Each wrong letter draws another part of the gallows — you have 6 attempts. Use the hint shown above the word as a clue."
+    }
+  }
+}

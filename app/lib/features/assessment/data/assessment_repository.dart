@@ -1,0 +1,75 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/network/api_client.dart';
+import 'models/assessment_dto.dart';
+
+class AssessmentRepository {
+  AssessmentRepository(this._api);
+  final ApiClient _api;
+
+  Future<AssessmentStartDto> startPlacement({String language = 'en'}) async {
+    final dynamic data = await _api.post(
+      '/assessments/placement/start',
+      query: <String, dynamic>{'language': language},
+    );
+    return AssessmentStartDto.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
+  Future<AssessmentResultDto> submitPlacement({
+    required int attemptId,
+    required List<({int wordId, String chosen})> answers,
+  }) async {
+    final dynamic data = await _api.post(
+      '/assessments/placement/submit',
+      body: <String, dynamic>{
+        'attempt_id': attemptId,
+        'answers': answers
+            .map((a) => <String, dynamic>{'word_id': a.wordId, 'chosen': a.chosen})
+            .toList(),
+      },
+    );
+    return AssessmentResultDto.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
+  Future<AssessmentStartDto> startLevelUp({String language = 'en'}) async {
+    final dynamic data = await _api.post(
+      '/assessments/level-up/start',
+      query: <String, dynamic>{'language': language},
+    );
+    return AssessmentStartDto.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
+  Future<AssessmentResultDto> submitLevelUp({
+    required int attemptId,
+    required List<({int wordId, String chosen})> answers,
+  }) async {
+    final dynamic data = await _api.post(
+      '/assessments/level-up/submit',
+      body: <String, dynamic>{
+        'attempt_id': attemptId,
+        'answers': answers
+            .map((a) => <String, dynamic>{'word_id': a.wordId, 'chosen': a.chosen})
+            .toList(),
+      },
+    );
+    return AssessmentResultDto.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
+  Future<LevelStatusDto> getStatus({String language = 'en'}) async {
+    final dynamic data = await _api.get(
+      '/assessments/me/status',
+      query: <String, dynamic>{'language': language},
+    );
+    return LevelStatusDto.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+}
+
+final Provider<AssessmentRepository> assessmentRepositoryProvider =
+    Provider<AssessmentRepository>(
+  (Ref ref) => AssessmentRepository(ref.read(apiClientProvider)),
+);
+
+final FutureProvider<LevelStatusDto> levelStatusProvider =
+    FutureProvider<LevelStatusDto>(
+  (Ref ref) => ref.read(assessmentRepositoryProvider).getStatus(),
+);
