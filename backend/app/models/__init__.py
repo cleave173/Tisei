@@ -20,6 +20,7 @@ from app.models.content import (
     Word,
 )
 from app.models.language import Language
+from app.models.password_reset import PasswordResetCode
 from app.models.translation import TranslationHistory, TranslationMode
 from app.models.user import AuthProvider, Profile, RefreshToken, User
 
@@ -31,6 +32,7 @@ __all__ = [
     "LevelAssessment",
     "Language",
     "Lesson",
+    "PasswordResetCode",
     "LessonType",
     "Profile",
     "Question",

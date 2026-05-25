@@ -44,6 +44,19 @@ services:
     volumes:
       - ../backend:/code
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@tisei.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    volumes:
+      - tisei_pgadmin:/var/lib/pgadmin
+
   libretranslate:
     image: libretranslate/libretranslate:latest
     restart: unless-stopped
@@ -58,3 +71,4 @@ services:
 volumes:
   tisei_pg:
   tisei_lt_models:
+  tisei_pgadmin:

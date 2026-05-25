@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../network/api_exception.dart';
@@ -10,8 +11,31 @@ class AppSnackBar {
 
   // ── Public API ────────────────────────────────────────────────────────────
 
-  static void showError(BuildContext context, dynamic error) =>
-      _show(context, message: _friendly(error), type: _Type.error);
+  static void showError(BuildContext context, dynamic error) {
+    final String raw = _friendly(error);
+    _show(context, message: _localize(raw), type: _Type.error);
+  }
+
+  // Maps known backend English messages → localization keys
+  static const Map<String, String> _backendKeys = <String, String>{
+    'invalid credentials':    'errors.invalid_credentials',
+    'user already exists':    'errors.user_exists',
+    'inactive user':          'errors.inactive_user',
+    'invalid refresh token':  'errors.session_expired',
+    'invalid or expired code':'errors.invalid_code',
+    'no internet':            'errors.no_internet',
+    'rate limit':             'errors.rate_limited',
+    'server error':           'errors.server_error',
+    'email already':          'errors.user_exists',
+  };
+
+  static String _localize(String raw) {
+    final String lower = raw.toLowerCase();
+    for (final MapEntry<String, String> e in _backendKeys.entries) {
+      if (lower.contains(e.key)) return e.value.tr();
+    }
+    return raw;
+  }
 
   static void showSuccess(BuildContext context, String message) =>
       _show(context, message: message, type: _Type.success);

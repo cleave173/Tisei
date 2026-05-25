@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,8 @@ import 'core/character/character_notifier.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
+import 'core/utils/auth_event_bus.dart';
+import 'features/auth/presentation/providers/auth_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,11 +47,32 @@ Future<void> main() async {
   );
 }
 
-class TiseiApp extends ConsumerWidget {
+class TiseiApp extends ConsumerStatefulWidget {
   const TiseiApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TiseiApp> createState() => _TiseiAppState();
+}
+
+class _TiseiAppState extends ConsumerState<TiseiApp> {
+  StreamSubscription<void>? _sessionSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _sessionSub = AuthEventBus.onSessionExpired.listen((_) {
+      ref.read(authControllerProvider.notifier).logout();
+    });
+  }
+
+  @override
+  void dispose() {
+    _sessionSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final GoRouter router = ref.watch(appRouterProvider);
     final ThemeState themeState = ref.watch(themeNotifierProvider);
     final Color seed = themeState.palette.seed;

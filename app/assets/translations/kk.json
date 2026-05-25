@@ -14,6 +14,7 @@
     "check": "Тексеру",
     "clear_all": "Барлығын тазалау",
     "play": "Ойнату",
+    "start": "Бастау",
     "all": "Барлығы"
   },
   "auth": {
@@ -24,7 +25,43 @@
     "name": "Аты",
     "age": "Жасы",
     "login_with_google": "Google арқылы кіру",
-    "fill_all_fields": "Барлық өрістерді дұрыс толтырыңыз (құпия сөз ≥ 6 таңба)"
+    "fill_all_fields": "Барлық өрістерді дұрыс толтырыңыз (құпия сөз ≥ 6 таңба)",
+    "fields_required": "Барлық өрістерді толтырыңыз",
+    "email_invalid": "Дұрыс email енгізіңіз",
+    "age_invalid": "Дұрыс жас енгізіңіз (4–120)",
+    "name_invalid": "Ат кемінде 2 таңбадан ұзын болуы керек",
+    "password_weak": "Құпия сөз ≥8 таңба, бір әріп және бір сан болуы керек",
+    "passwords_mismatch": "Құпия сөздер сәйкес емес",
+    "password_confirm": "Құпия сөзді растаңыз",
+    "password_requirements": "Кемінде 8 таңба, бір әріп және бір сан",
+    "age_hint": "Жасыңыз оқытуды жекелдендіруге көмектеседі",
+    "name_hint": "Сізді қалай атау керек?",
+    "email_hint": "Кіру үшін пайдаланылады — спам жібермейміз",
+    "forgot_password": "Құпия сөзді ұмыттыңыз ба?",
+    "forgot_password_title": "Құпия сөзді қалпына келтіру",
+    "forgot_password_hint": "Email енгізіңіз, біз сілтеме жібереміз.",
+    "send_reset_link": "Сілтеме жіберу",
+    "reset_code_sent": "Поштаңызды тексеріңіз!",
+    "reset_code_sent_hint": "{} тіркелген болса, код жіберілді.",
+    "reset_code": "6 сандық код",
+    "code_invalid": "Поштадағы 6 сандық кодты енгізіңіз",
+    "set_new_password": "Жаңа құпия сөз орнату",
+    "resend_code": "Жаңа код жіберу",
+    "password_reset_success": "Құпия сөз жаңартылды!",
+    "password_reset_success_hint": "Енді жаңа құпия сөзбен кіре аласыз.",
+    "back_to_login": "Кіруге қайту",
+    "guest_title": "Сіз кірмегенсіз",
+    "guest_hint": "Прогресс, серия және жетістіктерді сақтау үшін аккаунт жасаңыз"
+  },
+  "errors": {
+    "invalid_credentials": "Қате email немесе құпия сөз",
+    "user_exists": "Бұл email-мен аккаунт бар",
+    "inactive_user": "Аккаунт өшірілген",
+    "session_expired": "Сессия аяқталды, қайта кіріңіз",
+    "invalid_code": "Код дұрыс емес немесе мерзімі өтті",
+    "no_internet": "Интернет байланысы жоқ",
+    "rate_limited": "Тым көп әрекет, кейінірек көріңіз",
+    "server_error": "Сервер қатесі, кейінірек көріңіз"
   },
   "nav": {
     "learn": "Үйрену",
@@ -146,10 +183,15 @@
     "title": "Профиль",
     "placeholder": "Профиль",
     "level": "Деңгей",
+    "level_n": "Деңгей {}",
     "xp": "XP",
+    "xp_progress": "{} / {} XP",
+    "xp_to_next": "Келесі деңгейге {} XP қалды",
     "streak": "Серия",
+    "daily_goal": "Күндік мақсат",
     "achievements": "Жетістіктер",
-    "logout": "Шығу"
+    "logout": "Шығу",
+    "logout_confirm": "Шығуға сенімісіз бе?"
   },
   "settings": {
     "title": "Баптаулар",
@@ -165,7 +207,16 @@
     "palette_golden": "Алтын",
     "palette_indigo": "Индиго"
   },
-  "achievements": { "title": "Жетістіктер", "placeholder": "Марапаттар" },
+  "achievements": {
+    "title": "Жетістіктер",
+    "placeholder": "Жетістік алу үшін сабақ өтіңіз!",
+    "tab_all": "Барлығы",
+    "tab_unlocked": "Алынған",
+    "tab_progress": "Үдерісте",
+    "unlocked": "Алынды",
+    "none_unlocked": "Әлі жетістік жоқ",
+    "none_in_progress": "Үлгеруді бастаңыз"
+  },
   "vocabulary": {
     "title": "Сөздік",
     "search_hint": "Сөз немесе аударма бойынша іздеу",

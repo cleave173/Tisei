@@ -8,6 +8,8 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_snack_bar.dart';
 import '../providers/auth_controller.dart';
 
+final RegExp _emailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -18,18 +20,38 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  final FocusNode _passFocus = FocusNode();
   bool _obscure = true;
   bool _busy = false;
+  String? _emailError;
+  String? _passError;
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _passFocus.dispose();
     super.dispose();
+  }
+
+  bool _validate() {
+    final String email = _email.text.trim();
+    final String pass = _password.text;
+    String? emailErr;
+    String? passErr;
+    if (email.isEmpty) {
+      emailErr = 'auth.fields_required'.tr();
+    } else if (!_emailRe.hasMatch(email)) {
+      emailErr = 'auth.email_invalid'.tr();
+    }
+    if (pass.isEmpty) passErr = 'auth.fields_required'.tr();
+    setState(() { _emailError = emailErr; _passError = passErr; });
+    return emailErr == null && passErr == null;
   }
 
   Future<void> _submit() async {
     if (_busy) return;
+    if (!_validate()) return;
     setState(() => _busy = true);
     try {
       await ref.read(authControllerProvider.notifier).login(
@@ -67,37 +89,57 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('auth.login'.tr())),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            const SizedBox(height: 8),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(hintText: 'auth.email'.tr()),
+              textInputAction: TextInputAction.next,
               enabled: !_busy,
+              onChanged: (_) { if (_emailError != null) setState(() => _emailError = null); },
+              decoration: InputDecoration(
+                labelText: 'auth.email'.tr(),
+                prefixIcon: const Icon(Icons.email_outlined),
+                errorText: _emailError,
+              ),
+              onSubmitted: (_) => _passFocus.requestFocus(),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _password,
+              focusNode: _passFocus,
               obscureText: _obscure,
+              textInputAction: TextInputAction.done,
               enabled: !_busy,
+              onChanged: (_) { if (_passError != null) setState(() => _passError = null); },
               decoration: InputDecoration(
-                hintText: 'auth.password'.tr(),
+                labelText: 'auth.password'.tr(),
+                prefixIcon: const Icon(Icons.lock_outlined),
+                errorText: _passError,
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                  icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
+              onSubmitted: (_) => _submit(),
             ),
-            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _busy ? null : () => context.push(Routes.forgotPassword),
+                child: Text('auth.forgot_password'.tr()),
+              ),
+            ),
+            const SizedBox(height: 8),
             FilledButton(
               onPressed: _busy ? null : _submit,
               child: _busy
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
+                  ? const SizedBox.square(
+                      dimension: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : Text('auth.login'.tr()),

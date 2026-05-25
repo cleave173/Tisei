@@ -14,7 +14,8 @@
     "check": "Check",
     "clear_all": "Clear all",
     "play": "Play",
-    "all": "All"
+    "all": "All",
+    "start": "Start"
   },
   "auth": {
     "login": "Login",
@@ -24,7 +25,43 @@
     "name": "Name",
     "age": "Age",
     "login_with_google": "Continue with Google",
-    "fill_all_fields": "Please fill in all fields correctly (password ≥ 6 chars)"
+    "fill_all_fields": "Please fill in all fields correctly (password ≥ 6 chars)",
+    "fields_required": "Please fill in all fields",
+    "email_invalid": "Enter a valid email address",
+    "age_invalid": "Please enter a valid age (4–120)",
+    "name_invalid": "Name must be at least 2 characters",
+    "password_weak": "Password must be ≥8 chars with a letter and a number",
+    "passwords_mismatch": "Passwords do not match",
+    "password_confirm": "Confirm password",
+    "password_requirements": "At least 8 characters, one letter and one number",
+    "age_hint": "Your age helps us personalize your learning",
+    "name_hint": "What should we call you?",
+    "email_hint": "Used to log you in — we won't spam you",
+    "forgot_password": "Forgot password?",
+    "forgot_password_title": "Reset your password",
+    "forgot_password_hint": "Enter your email and we'll send you a reset link.",
+    "send_reset_link": "Send reset link",
+    "reset_code_sent": "Check your inbox!",
+    "reset_code_sent_hint": "If {} is registered, a reset code has been sent.",
+    "reset_code": "6-digit code",
+    "code_invalid": "Please enter the 6-digit code from the email",
+    "set_new_password": "Set new password",
+    "resend_code": "Send a new code",
+    "password_reset_success": "Password updated!",
+    "password_reset_success_hint": "You can now log in with your new password.",
+    "back_to_login": "Back to login",
+    "guest_title": "You are not signed in",
+    "guest_hint": "Create an account to save your progress, streaks and achievements"
+  },
+  "errors": {
+    "invalid_credentials": "Incorrect email or password",
+    "user_exists": "An account with this email already exists",
+    "inactive_user": "This account has been deactivated",
+    "session_expired": "Your session has expired, please log in again",
+    "invalid_code": "The code is incorrect or has expired",
+    "no_internet": "No internet connection",
+    "rate_limited": "Too many attempts, please try again later",
+    "server_error": "Server error, please try again"
   },
   "nav": {
     "learn": "Learn",
@@ -146,10 +183,15 @@
     "title": "Profile",
     "placeholder": "Profile",
     "level": "Level",
+    "level_n": "Level {}",
     "xp": "XP",
+    "xp_progress": "{} / {} XP",
+    "xp_to_next": "{} XP to next level",
     "streak": "Streak",
+    "daily_goal": "Daily Goal",
     "achievements": "Achievements",
-    "logout": "Log out"
+    "logout": "Log out",
+    "logout_confirm": "Are you sure you want to log out?"
   },
   "settings": {
     "title": "Settings",
@@ -165,7 +207,16 @@
     "palette_golden": "Gold",
     "palette_indigo": "Indigo"
   },
-  "achievements": { "title": "Achievements", "placeholder": "Awards" },
+  "achievements": {
+    "title": "Achievements",
+    "placeholder": "Complete lessons to earn achievements!",
+    "tab_all": "All",
+    "tab_unlocked": "Unlocked",
+    "tab_progress": "In Progress",
+    "unlocked": "Unlocked",
+    "none_unlocked": "No achievements unlocked yet",
+    "none_in_progress": "Start learning to track progress"
+  },
   "search": {
     "title": "Search",
     "hint": "Search topics",

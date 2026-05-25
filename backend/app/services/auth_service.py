@@ -1,12 +1,14 @@
 """Authentication business logic — separated from HTTP layer."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import random
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -15,7 +17,9 @@ from app.core.security import (
     verify_password,
 )
 from app.models import AuthProvider, Profile, RefreshToken, User
+from app.models.password_reset import PasswordResetCode
 from app.schemas.auth import GoogleAuthRequest, LoginRequest, RegisterRequest, TokenPair
+from app.services import email_service
 
 
 async def _issue_token_pair(db: AsyncSession, user: User) -> TokenPair:
@@ -131,3 +135,46 @@ async def refresh(db: AsyncSession, raw_refresh: str) -> TokenPair:
 
     rt.revoked = True  # rotate
     return await _issue_token_pair(db, user)
+
+
+async def forgot_password(db: AsyncSession, email: str) -> None:
+    """Generate a 6-digit OTP and send it via email. Always succeeds (no enumeration)."""
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is None:
+        return  # silent — don't reveal whether email exists
+
+    # Invalidate all previous codes for this user
+    await db.execute(delete(PasswordResetCode).where(PasswordResetCode.user_id == user.id))
+
+    code = f"{random.randint(0, 999_999):06d}"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.reset_code_expire_minutes)
+    db.add(PasswordResetCode(user_id=user.id, code=code, expires_at=expires_at))
+    await db.flush()
+
+    await email_service.send_reset_code(user.email, code)
+
+
+async def reset_password(db: AsyncSession, email: str, code: str, new_password: str) -> None:
+    """Verify OTP and update password."""
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
+    now = datetime.now(timezone.utc)
+    reset = (
+        await db.execute(
+            select(PasswordResetCode).where(
+                PasswordResetCode.user_id == user.id,
+                PasswordResetCode.code == code,
+                PasswordResetCode.used.is_(False),
+                PasswordResetCode.expires_at > now,
+            )
+        )
+    ).scalar_one_or_none()
+
+    if reset is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
+    reset.used = True
+    user.password_hash = hash_password(new_password)
+    await db.flush()

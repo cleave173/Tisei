@@ -5,103 +5,359 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../auth/data/models/user_dto.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
 
-class ProfilePage extends ConsumerWidget {
+// XP needed to finish level N (and advance to N+1)
+int _xpForLevel(int level) => level * 200;
+// Total XP accumulated at the start of level N
+int _xpAtLevelStart(int level) => 100 * level * (level - 1);
+
+Color _cefrColor(String? cefr) => switch (cefr?.toUpperCase()) {
+      'A1' => const Color(0xFF1565C0),
+      'A2' => const Color(0xFF0097A7),
+      'B1' => const Color(0xFF2E7D32),
+      'B2' => const Color(0xFF558B2F),
+      'C1' => const Color(0xFFE65100),
+      'C2' => const Color(0xFFC62828),
+      _ => const Color(0xFF757575),
+    };
+
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends ConsumerState<ProfilePage> {
+  Future<void> _refresh() async {
+    await ref.read(authControllerProvider.notifier).refresh();
+  }
+
+  Future<void> _confirmLogout() async {
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) => AlertDialog(
+        title: Text('profile.logout'.tr()),
+        content: Text('profile.logout_confirm'.tr()),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('common.cancel'.tr()),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('profile.logout'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(authControllerProvider.notifier).logout();
+    if (mounted) context.go(Routes.starter);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AuthState s = ref.watch(authControllerProvider);
+
+    if (s is AuthInitial) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (s is! AuthAuthenticated) {
+      return _GuestProfilePage();
+    }
+    final UserDto user = s.user;
+    final ProfileDto? p = user.profile;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('profile.title'.tr()),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push(Routes.settings),
           ),
         ],
       ),
-      body: switch (s) {
-        AuthAuthenticated(:final user) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: <Widget>[
-              const SizedBox(height: 16),
-              Center(
-                child: CircleAvatar(
-                  radius: 48,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  backgroundImage: user.avatarUrl != null
-                      ? CachedNetworkImageProvider(user.avatarUrl!)
-                      : null,
-                  child: user.avatarUrl == null
-                      ? Text(
-                          user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                          style: const TextStyle(fontSize: 40, color: Colors.white),
-                        )
-                      : null,
-                ),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            _ProfileHeader(user: user),
+            if (p != null) ...<Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _XpCard(profile: p),
               ),
-              const SizedBox(height: 12),
-              Text(user.fullName,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-              Text(user.email,
-                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54)),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  _StatTile(label: 'profile.level'.tr(), value: '${user.profile?.level ?? 1}'),
-                  _StatTile(
-                      label: 'profile.xp'.tr(),
-                      value: '${user.profile?.experiencePoints ?? 0}'),
-                  _StatTile(
-                      label: 'profile.streak'.tr(),
-                      value: '${user.profile?.streakDays ?? 0}'),
-                ],
-              ),
-              const SizedBox(height: 24),
-              ListTile(
-                leading: const Icon(Icons.emoji_events_outlined),
-                title: Text('profile.achievements'.tr()),
-                onTap: () => context.go(Routes.achievements),
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings_outlined),
-                title: Text('settings.title'.tr()),
-                onTap: () => context.push(Routes.settings),
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: Text('profile.logout'.tr(), style: const TextStyle(color: Colors.red)),
-                onTap: () async {
-                  await ref.read(authControllerProvider.notifier).logout();
-                  if (context.mounted) context.go(Routes.starter);
-                },
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: _StatsRow(profile: p),
               ),
             ],
-          ),
-        _ => const Center(child: CircularProgressIndicator()),
-      },
+            const SizedBox(height: 16),
+            _MenuSection(onLogout: _confirmLogout),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value});
+// ── Header ─────────────────────────────────────────────────────────────────────
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.user});
+  final UserDto user;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final String? cefr = user.profile?.cefrLevel;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[cs.primary, cs.secondary],
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
+      child: Column(
+        children: <Widget>[
+          CircleAvatar(
+            radius: 44,
+            backgroundColor: Colors.white24,
+            backgroundImage: user.avatarUrl != null
+                ? CachedNetworkImageProvider(user.avatarUrl!)
+                : null,
+            child: user.avatarUrl == null
+                ? Text(
+                    user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
+                    style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.w700),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            user.fullName,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+          ),
+          const SizedBox(height: 4),
+          Text(user.email, style: const TextStyle(fontSize: 13, color: Colors.white70)),
+          if (cefr != null) ...<Widget>[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                color: _cefrColor(cefr),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                cefr,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ── XP progress card ──────────────────────────────────────────────────────────
+
+class _XpCard extends StatelessWidget {
+  const _XpCard({required this.profile});
+  final ProfileDto profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final int level = profile.level;
+    final int xp = profile.experiencePoints;
+    final int start = _xpAtLevelStart(level);
+    final int needed = _xpForLevel(level);
+    final int inLevel = (xp - start).clamp(0, needed);
+    final double fraction = needed > 0 ? inLevel / needed : 0.0;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  'profile.level_n'.tr(args: <String>['$level']),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                ),
+                Text(
+                  'profile.xp_progress'.tr(args: <String>['$inLevel', '$needed']),
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: fraction,
+                minHeight: 8,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'profile.xp_to_next'.tr(args: <String>['${(needed - inLevel).clamp(0, needed)}']),
+              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Stats row ─────────────────────────────────────────────────────────────────
+
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.profile});
+  final ProfileDto profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        _StatCard(icon: Icons.local_fire_department_rounded, color: const Color(0xFFE65100),
+            label: 'profile.streak'.tr(), value: '${profile.streakDays}'),
+        const SizedBox(width: 8),
+        _StatCard(icon: Icons.star_rounded, color: const Color(0xFFF9A825),
+            label: 'profile.xp'.tr(), value: '${profile.experiencePoints}'),
+        const SizedBox(width: 8),
+        _StatCard(icon: Icons.flag_rounded, color: Theme.of(context).colorScheme.primary,
+            label: 'profile.daily_goal'.tr(), value: '${profile.dailyGoalXp} XP'),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.icon, required this.color, required this.label, required this.value});
+  final IconData icon;
+  final Color color;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          child: Column(
+            children: <Widget>[
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 6),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Guest screen ──────────────────────────────────────────────────────────────
+
+class _GuestProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(title: Text('profile.title'.tr())),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              CircleAvatar(
+                radius: 48,
+                backgroundColor: cs.surfaceContainerHighest,
+                child: Icon(Icons.person_outline_rounded, size: 52, color: cs.onSurfaceVariant),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'auth.guest_title'.tr(),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'auth.guest_hint'.tr(),
+                style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: () => context.go(Routes.register),
+                icon: const Icon(Icons.person_add_outlined),
+                label: Text('auth.register'.tr()),
+                style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => context.go(Routes.login),
+                icon: const Icon(Icons.login_outlined),
+                label: Text('auth.login'.tr()),
+                style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Menu ──────────────────────────────────────────────────────────────────────
+
+class _MenuSection extends StatelessWidget {
+  const _MenuSection({required this.onLogout});
+  final VoidCallback onLogout;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
-        Text(label, style: const TextStyle(color: Colors.black54)),
+        ListTile(
+          leading: const Icon(Icons.emoji_events_outlined),
+          title: Text('profile.achievements'.tr()),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.go(Routes.achievements),
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings_outlined),
+          title: Text('settings.title'.tr()),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push(Routes.settings),
+        ),
+        const Divider(indent: 16, endIndent: 16),
+        ListTile(
+          leading: const Icon(Icons.logout, color: Colors.red),
+          title: Text('profile.logout'.tr(), style: const TextStyle(color: Colors.red)),
+          onTap: onLogout,
+        ),
       ],
     );
   }

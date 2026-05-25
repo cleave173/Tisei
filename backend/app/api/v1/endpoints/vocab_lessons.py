@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.models import Profile, Topic, User, VocabLessonProgress, Word
+from app.services import achievement_service
 from app.schemas.learning import (
     VocabLessonOut,
     VocabLessonProgressOut,
@@ -256,6 +257,7 @@ async def mark_stage_complete(
         if profile is not None:
             profile.experience_points = (profile.experience_points or 0) + awarded
 
+    await achievement_service.grant_achievements(db, current.id)
     await db.commit()
     await db.refresh(prog)
 

@@ -19,3 +19,5 @@ python-dotenv==1.0.1
 # faster-whisper==1.0.3
 # Vocabulary import: IPA generation from CMU Pronouncing Dictionary (offline)
 eng_to_ipa==0.0.2
+aiosmtplib==3.0.1
+slowapi==0.1.9

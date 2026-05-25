@@ -10,6 +10,7 @@ import '../../features/games/presentation/pages/hangman_page.dart';
 import '../../features/games/presentation/pages/sentence_builder_page.dart';
 import '../../features/games/presentation/pages/word_match_page.dart';
 import '../../features/games/presentation/pages/word_scramble_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/starter_page.dart';
@@ -39,6 +40,7 @@ class Routes {
   static const String achievements = '/achievements';
   static const String profile = '/profile';
 
+  static const String forgotPassword = '/forgot-password';
   static const String settings = '/settings';
   static const String placementTest = '/placement-test';
   static const String levelUpTest = '/level-up-test';
@@ -72,6 +74,10 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
       GoRoute(
         path: Routes.register,
         builder: (BuildContext c, GoRouterState s) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: Routes.forgotPassword,
+        builder: (BuildContext c, GoRouterState s) => const ForgotPasswordPage(),
       ),
       GoRoute(
         path: Routes.settings,

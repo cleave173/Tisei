@@ -8,7 +8,14 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_snack_bar.dart';
 import '../providers/auth_controller.dart';
 
-/// 4-step registration: age -> name -> email -> password.
+final RegExp _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+bool _isStrongPassword(String p) =>
+    p.length >= 8 &&
+    p.contains(RegExp(r'[a-zA-Z]')) &&
+    p.contains(RegExp(r'\d'));
+
+/// 4-step registration: age → name → email → password.
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
@@ -24,6 +31,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController _name = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  final TextEditingController _confirm = TextEditingController();
+
+  bool _obscure = true;
+  bool _busy = false;
+
+  String? _ageErr;
+  String? _nameErr;
+  String? _emailErr;
+  String? _passErr;
+  String? _confirmErr;
 
   @override
   void dispose() {
@@ -32,33 +49,61 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _name.dispose();
     _email.dispose();
     _password.dispose();
+    _confirm.dispose();
     super.dispose();
   }
 
-  bool _busy = false;
+  /// Returns true if current step passes validation.
+  bool _validateStep() {
+    switch (_step) {
+      case 0:
+        final int? age = int.tryParse(_age.text.trim());
+        if (age == null || age < 4 || age > 120) {
+          setState(() => _ageErr = 'auth.age_invalid'.tr());
+          return false;
+        }
+        setState(() => _ageErr = null);
+      case 1:
+        if (_name.text.trim().length < 2) {
+          setState(() => _nameErr = 'auth.name_invalid'.tr());
+          return false;
+        }
+        setState(() => _nameErr = null);
+      case 2:
+        if (!_emailRegex.hasMatch(_email.text.trim())) {
+          setState(() => _emailErr = 'auth.email_invalid'.tr());
+          return false;
+        }
+        setState(() => _emailErr = null);
+      case 3:
+        if (!_isStrongPassword(_password.text)) {
+          setState(() { _passErr = 'auth.password_weak'.tr(); _confirmErr = null; });
+          return false;
+        }
+        if (_password.text != _confirm.text) {
+          setState(() { _passErr = null; _confirmErr = 'auth.passwords_mismatch'.tr(); });
+          return false;
+        }
+        setState(() { _passErr = null; _confirmErr = null; });
+    }
+    return true;
+  }
 
   Future<void> _next() async {
+    if (!_validateStep()) return;
     if (_step < 3) {
-      _ctrl.nextPage(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.ease,
-      );
+      _ctrl.nextPage(duration: const Duration(milliseconds: 250), curve: Curves.ease);
       setState(() => _step++);
       return;
     }
     if (_busy) return;
-    final int? age = int.tryParse(_age.text.trim());
-    if (age == null || _name.text.trim().isEmpty || _email.text.trim().isEmpty || _password.text.length < 6) {
-      AppSnackBar.showWarning(context, 'auth.fill_all_fields'.tr());
-      return;
-    }
     setState(() => _busy = true);
     try {
       await ref.read(authControllerProvider.notifier).register(
             email: _email.text.trim(),
             password: _password.text,
             fullName: _name.text.trim(),
-            age: age,
+            age: int.parse(_age.text.trim()),
           );
       if (mounted) context.go(Routes.placementTest);
     } catch (e) {
@@ -90,30 +135,86 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               children: <Widget>[
                 _Step(
                   label: 'auth.age'.tr(),
+                  hint: 'auth.age_hint'.tr(),
                   child: TextField(
                     controller: _age,
                     keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    textInputAction: TextInputAction.done,
+                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (_) { if (_ageErr != null) setState(() => _ageErr = null); },
+                    onSubmitted: (_) => _next(),
+                    decoration: InputDecoration(
+                      labelText: 'auth.age'.tr(),
+                      errorText: _ageErr,
+                    ),
                   ),
                 ),
                 _Step(
                   label: 'auth.name'.tr(),
-                  child: TextField(controller: _name),
+                  hint: 'auth.name_hint'.tr(),
+                  child: TextField(
+                    controller: _name,
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.done,
+                    onChanged: (_) { if (_nameErr != null) setState(() => _nameErr = null); },
+                    onSubmitted: (_) => _next(),
+                    decoration: InputDecoration(
+                      labelText: 'auth.name'.tr(),
+                      errorText: _nameErr,
+                    ),
+                  ),
                 ),
                 _Step(
                   label: 'auth.email'.tr(),
+                  hint: 'auth.email_hint'.tr(),
                   child: TextField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                    onChanged: (_) { if (_emailErr != null) setState(() => _emailErr = null); },
+                    onSubmitted: (_) => _next(),
+                    decoration: InputDecoration(
+                      labelText: 'auth.email'.tr(),
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      errorText: _emailErr,
+                    ),
                   ),
                 ),
                 _Step(
                   label: 'auth.password'.tr(),
-                  child: TextField(
-                    controller: _password,
-                    obscureText: true,
+                  hint: 'auth.password_requirements'.tr(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      TextField(
+                        controller: _password,
+                        obscureText: _obscure,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) { if (_passErr != null) setState(() => _passErr = null); },
+                        decoration: InputDecoration(
+                          labelText: 'auth.password'.tr(),
+                          prefixIcon: const Icon(Icons.lock_outlined),
+                          errorText: _passErr,
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                            onPressed: () => setState(() => _obscure = !_obscure),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _confirm,
+                        obscureText: _obscure,
+                        textInputAction: TextInputAction.done,
+                        onChanged: (_) { if (_confirmErr != null) setState(() => _confirmErr = null); },
+                        onSubmitted: (_) => _next(),
+                        decoration: InputDecoration(
+                          labelText: 'auth.password_confirm'.tr(),
+                          prefixIcon: const Icon(Icons.lock_outlined),
+                          errorText: _confirmErr,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -122,8 +223,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           Padding(
             padding: const EdgeInsets.all(24),
             child: FilledButton(
-              onPressed: _next,
-              child: Text(_step == 3 ? 'common.finish'.tr() : 'common.next'.tr()),
+              onPressed: _busy ? null : _next,
+              child: _busy
+                  ? const SizedBox.square(
+                      dimension: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(_step == 3 ? 'common.finish'.tr() : 'common.next'.tr()),
             ),
           ),
         ],
@@ -133,8 +239,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 }
 
 class _Step extends StatelessWidget {
-  const _Step({required this.label, required this.child});
+  const _Step({required this.label, required this.child, this.hint});
   final String label;
+  final String? hint;
   final Widget child;
 
   @override
@@ -146,6 +253,10 @@ class _Step extends StatelessWidget {
         children: <Widget>[
           const SizedBox(height: 16),
           Text(label, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+          if (hint != null) ...<Widget>[
+            const SizedBox(height: 6),
+            Text(hint!, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          ],
           const SizedBox(height: 24),
           child,
         ],
