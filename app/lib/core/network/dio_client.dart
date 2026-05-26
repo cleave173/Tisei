@@ -5,6 +5,7 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../config/env.dart';
 import '../utils/auth_event_bus.dart';
+import 'cache_interceptor.dart';
 
 const String kAccessTokenKey = 'access_token';
 const String kRefreshTokenKey = 'refresh_token';
@@ -91,6 +92,8 @@ final Provider<Dio> dioProvider = Provider<Dio>((Ref ref) {
       },
     ),
   );
+
+  dio.interceptors.add(CacheInterceptor());
 
   dio.interceptors.add(
     PrettyDioLogger(

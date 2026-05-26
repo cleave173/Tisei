@@ -58,7 +58,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             _email.text.trim(),
             _password.text,
           );
-      if (mounted) context.go(Routes.home);
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        context.go(Routes.home);
+      }
     } catch (e) {
       if (mounted) AppSnackBar.showError(context, e);
     } finally {

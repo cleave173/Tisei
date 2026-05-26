@@ -49,6 +49,11 @@ class AuthRepository {
     return UserDto.fromJson(data as Map<String, dynamic>);
   }
 
+  Future<String> uploadAvatar(String filePath) async {
+    final dynamic data = await _api.uploadFile('/users/me/avatar', filePath);
+    return (data as Map<String, dynamic>)['avatar_url'] as String;
+  }
+
   Future<bool> hasToken() async {
     final String? t = await _storage.read(key: kAccessTokenKey);
     return t != null && t.isNotEmpty;

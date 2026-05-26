@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/app_snack_bar.dart';
 import '../../../assessment/data/assessment_repository.dart';
 import '../../../assessment/data/models/assessment_dto.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
@@ -25,8 +26,31 @@ class HomePage extends ConsumerWidget {
     final AsyncValue<List<TopicDto>> topics = ref.watch(topicsProvider('en'));
     final AsyncValue<LevelStatusDto> statusAsync = ref.watch(levelStatusProvider);
 
+    final ColorScheme cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text('home.title'.tr(args: <String>[name]))),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[cs.primary, cs.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Text('👋', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text('home.title'.tr(args: <String>[name]),
+                style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(topicsProvider('en'));
@@ -100,7 +124,7 @@ class HomePage extends ConsumerWidget {
               ),
               error: (Object e, _) => Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('Error: $e', style: const TextStyle(color: Colors.red)),
+                child: Text(AppSnackBar.friendlyMessage(e), style: const TextStyle(color: Colors.red)),
               ),
               data: (List<TopicDto> ts) => Column(
                 children: ts
@@ -215,7 +239,7 @@ class _CurrentLanguageCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Text('Level $level · $xp XP', style: const TextStyle(color: Colors.white70)),
+              Text('home.level_xp'.tr(args: <String>['$level', '$xp']), style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 16),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -305,7 +329,7 @@ class _TopicProgressCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      total > 0 ? '$done/$total' : '${topic.wordCount} words',
+                      total > 0 ? '$done/$total' : 'learning.word_count'.tr(args: <String>['${topic.wordCount}']),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

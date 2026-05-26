@@ -15,7 +15,8 @@
     "clear_all": "Clear all",
     "play": "Play",
     "all": "All",
-    "start": "Start"
+    "start": "Start",
+    "offline": "No internet connection — using cached data"
   },
   "auth": {
     "login": "Login",
@@ -74,7 +75,8 @@
     "title": "Hi, {}!",
     "available_courses": "Available courses",
     "games_title": "Play to learn",
-    "games_subtitle": "Word games on any topic you choose"
+    "games_subtitle": "Word games on any topic you choose",
+    "level_xp": "Level {} · {} XP"
   },
   "learning": {
     "introduction": "Introduction",
@@ -84,6 +86,8 @@
     "no_lessons": "No lessons yet",
     "no_words": "No words for this filter",
     "words": "Words",
+    "word_count": "{} words",
+    "level_word_count": "{} · {} words",
     "lessons": "Lessons",
     "lesson_n": "Lesson {}",
     "lesson_subtitle": "{} words · {}/{} stages"
@@ -177,7 +181,14 @@
     "gallery": "Gallery",
     "no_history": "No translations yet",
     "no_favorites": "No favorites yet",
-    "stt_unavailable": "Speech recognition unavailable on this device"
+    "stt_unavailable": "Speech recognition unavailable on this device",
+    "offline_mode": "Offline mode — uses on-device ML Kit. First use requires model download.",
+    "offline_model_title": "Download language models?",
+    "offline_model_body": "Offline translation requires downloading language models for: {}. Download now (~30 MB each)?",
+    "offline_unsupported": "This language pair is not supported for offline translation.",
+    "download": "Download",
+    "downloading": "Downloading model…",
+    "offline_languages": "Offline Languages"
   },
   "profile": {
     "title": "Profile",
@@ -191,7 +202,8 @@
     "daily_goal": "Daily Goal",
     "achievements": "Achievements",
     "logout": "Log out",
-    "logout_confirm": "Are you sure you want to log out?"
+    "logout_confirm": "Are you sure you want to log out?",
+    "change_photo": "Change photo"
   },
   "settings": {
     "title": "Settings",
@@ -249,6 +261,7 @@
     "take_test": "Take the placement test",
     "skip_to_beginner": "Start from the very beginning",
     "answer_honestly": "Please answer honestly — don't guess!",
+    "dont_know": "I don't know",
     "level_up_locked": "Level {} is locked",
     "complete_more_topics": "Complete {} more topic(s) to unlock the level-up test"
   },

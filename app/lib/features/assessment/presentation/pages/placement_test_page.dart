@@ -68,6 +68,11 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
     _answers[_q.wordId] = option;
   }
 
+  void _skip() {
+    // No answer recorded — treated as wrong by the backend
+    _advance();
+  }
+
   void _advance() {
     if (_index < _total - 1) {
       setState(() {
@@ -160,6 +165,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
       submitting: _submitting,
       onPick: _pick,
       onAdvance: _advance,
+      onSkip: _skip,
     );
   }
 }
@@ -271,7 +277,7 @@ class _PlacementResultScreen extends ConsumerWidget {
                   result.totalCorrect.toString(),
                   result.totalQuestions.toString(),
                 ]),
-                style: const TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),

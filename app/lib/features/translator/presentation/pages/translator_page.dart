@@ -11,20 +11,37 @@ class TranslatorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color primary = Theme.of(context).colorScheme.primary;
-    final Color onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final ColorScheme cs = Theme.of(context).colorScheme;
     return DefaultTabController(
       length: 5,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: primary,
-          foregroundColor: onPrimary,
-          title: Text('translator.title'.tr()),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: <Color>[cs.primary, cs.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(Icons.translate_rounded, size: 20),
+              const SizedBox(width: 8),
+              Text('translator.title'.tr()),
+            ],
+          ),
           bottom: TabBar(
             isScrollable: true,
-            indicatorColor: onPrimary,
-            labelColor: onPrimary,
-            unselectedLabelColor: onPrimary.withValues(alpha: 0.7),
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            dividerColor: Colors.transparent,
             tabs: <Widget>[
               Tab(icon: const Icon(Icons.text_fields), text: 'translator.text'.tr()),
               Tab(icon: const Icon(Icons.mic), text: 'translator.voice'.tr()),

@@ -105,7 +105,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             fullName: _name.text.trim(),
             age: int.parse(_age.text.trim()),
           );
-      if (mounted) context.go(Routes.placementTest);
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        context.go(Routes.placementTest);
+      }
     } catch (e) {
       if (mounted) AppSnackBar.showError(context, e);
     } finally {
@@ -120,8 +123,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         title: Text('auth.register'.tr()),
         actions: <Widget>[
           TextButton(
-            onPressed: () => context.go(Routes.home),
-            child: Text('common.skip'.tr()),
+            onPressed: () {
+              ScaffoldMessenger.of(context).clearSnackBars();
+              context.go(Routes.home);
+            },
+            child: Text(
+              'common.skip'.tr(),
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

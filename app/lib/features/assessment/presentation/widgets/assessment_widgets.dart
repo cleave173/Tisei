@@ -14,6 +14,7 @@ class AssessmentQuizScreen extends StatelessWidget {
     required this.submitting,
     required this.onPick,
     required this.onAdvance,
+    this.onSkip,
   });
 
   final String title;
@@ -24,6 +25,7 @@ class AssessmentQuizScreen extends StatelessWidget {
   final bool submitting;
   final void Function(String) onPick;
   final VoidCallback onAdvance;
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +99,7 @@ class AssessmentQuizScreen extends StatelessWidget {
                   Text(
                     'assessment.translate_word'.tr(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.black54,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
                   const SizedBox(height: 8),
@@ -112,9 +114,9 @@ class AssessmentQuizScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '/${question.ipa}/',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black54,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -134,24 +136,40 @@ class AssessmentQuizScreen extends StatelessWidget {
               ),
             ),
           ),
-          if (answered)
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: submitting ? null : onAdvance,
-                    child: Text(
-                      index == total - 1
-                          ? 'common.finish'.tr()
-                          : 'common.next'.tr(),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (answered)
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: submitting ? null : onAdvance,
+                        child: Text(
+                          index == total - 1
+                              ? 'common.finish'.tr()
+                              : 'common.next'.tr(),
+                        ),
+                      ),
+                    )
+                  else if (onSkip != null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: onSkip,
+                        child: Text(
+                          'assessment.dont_know'.tr(),
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );
@@ -282,7 +300,7 @@ class AssessmentScoreBreakdown extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: pct,
                       minHeight: 10,
-                      backgroundColor: Colors.grey.shade200,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         pct >= 0.7 ? const Color(0xFF4CD964) : Colors.orange,
                       ),
@@ -291,8 +309,7 @@ class AssessmentScoreBreakdown extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text('${s.correct}/${s.total}',
-                    style:
-                        const TextStyle(fontSize: 13, color: Colors.black54)),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           );

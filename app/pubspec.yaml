@@ -80,6 +80,13 @@ dependencies:
   lottie: ^3.1.2
   google_fonts: ^6.2.1
 
+  # Offline cache
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+
+  # Offline translation
+  google_mlkit_translation: any
+
   # Utils
   logger: ^2.4.0
   connectivity_plus: ^6.0.5

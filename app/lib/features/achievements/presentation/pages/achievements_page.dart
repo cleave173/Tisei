@@ -76,11 +76,35 @@ class _AchievementsPageState extends ConsumerState<AchievementsPage>
   Widget build(BuildContext context) {
     final AsyncValue<List<AchievementDto>> data = ref.watch(achievementsProvider);
 
+    final ColorScheme cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text('achievements.title'.tr()),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[cs.primary, cs.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.emoji_events_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text('achievements.title'.tr()),
+          ],
+        ),
         bottom: TabBar(
           controller: _tabs,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          dividerColor: Colors.transparent,
           tabs: <Tab>[
             Tab(text: 'achievements.tab_all'.tr()),
             Tab(text: 'achievements.tab_unlocked'.tr()),

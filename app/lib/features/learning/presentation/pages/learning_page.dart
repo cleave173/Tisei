@@ -29,7 +29,7 @@ class LearningPage extends ConsumerWidget {
               return Card(
                 child: ListTile(
                   title: Text(t.localizedTitle(context.locale.languageCode)),
-                  subtitle: Text('${t.level} · ${t.wordCount} words'),
+                  subtitle: Text('learning.level_word_count'.tr(args: <String>[t.level, '${t.wordCount}'])),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/topic/${t.id}', extra: t),
                 ),

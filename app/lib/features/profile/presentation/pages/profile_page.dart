@@ -3,8 +3,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/app_snack_bar.dart';
+import '../../../auth/data/auth_repository.dart';
 import '../../../auth/data/models/user_dto.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
 
@@ -33,6 +36,23 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   Future<void> _refresh() async {
     await ref.read(authControllerProvider.notifier).refresh();
+  }
+
+  Future<void> _changeAvatar() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? file = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    if (file == null) return;
+    try {
+      await ref.read(authRepositoryProvider).uploadAvatar(file.path);
+      await ref.read(authControllerProvider.notifier).refresh();
+    } catch (e) {
+      if (mounted) AppSnackBar.showError(context, e);
+    }
   }
 
   Future<void> _confirmLogout() async {
@@ -70,15 +90,31 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (s is! AuthAuthenticated) {
       return _GuestProfilePage();
     }
+
     final UserDto user = s.user;
     final ProfileDto? p = user.profile;
 
+    final ColorScheme cs = Theme.of(context).colorScheme;
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('profile.title'.tr()),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[cs.primary, cs.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: const SizedBox.shrink(),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.settings_outlined),
+            tooltip: '',
             onPressed: () => context.push(Routes.settings),
           ),
         ],
@@ -88,7 +124,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            _ProfileHeader(user: user),
+            _ProfileHeader(user: user, onChangeAvatar: _changeAvatar),
             if (p != null) ...<Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -112,13 +148,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 // ── Header ─────────────────────────────────────────────────────────────────────
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.user});
+  const _ProfileHeader({required this.user, required this.onChangeAvatar});
   final UserDto user;
+  final VoidCallback onChangeAvatar;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final String? cefr = user.profile?.cefrLevel;
+    final double topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -128,21 +166,40 @@ class _ProfileHeader extends StatelessWidget {
           colors: <Color>[cs.primary, cs.secondary],
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
+      padding: EdgeInsets.fromLTRB(24, topInset + 16, 24, 28),
       child: Column(
         children: <Widget>[
-          CircleAvatar(
-            radius: 44,
-            backgroundColor: Colors.white24,
-            backgroundImage: user.avatarUrl != null
-                ? CachedNetworkImageProvider(user.avatarUrl!)
-                : null,
-            child: user.avatarUrl == null
-                ? Text(
-                    user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                    style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.w700),
-                  )
-                : null,
+          GestureDetector(
+            onTap: onChangeAvatar,
+            child: Stack(
+              children: <Widget>[
+                CircleAvatar(
+                  radius: 44,
+                  backgroundColor: Colors.white24,
+                  backgroundImage: user.avatarUrl != null
+                      ? CachedNetworkImageProvider(user.avatarUrl!)
+                      : null,
+                  child: user.avatarUrl == null
+                      ? Text(
+                          user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
+                          style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.w700),
+                        )
+                      : null,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.black87),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -284,7 +341,28 @@ class _GuestProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text('profile.title'.tr())),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[cs.primary, cs.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.person_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text('profile.title'.tr()),
+          ],
+        ),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
