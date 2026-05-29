@@ -11,13 +11,7 @@ from app.schemas.translator import HistoryItemOut, TranslateRequest, TranslateRe
 router = APIRouter()
 
 
-@router.post("/text", response_model=TranslateResponse)
-async def translate_text(
-    payload: TranslateRequest,
-    current: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> TranslateResponse:
-    """Proxy text translation to LibreTranslate, save to history."""
+async def _translate_with_libretranslate(payload: TranslateRequest) -> str:
     url = f"{settings.libretranslate_url}/translate"
     body = {
         "q": payload.text,
@@ -25,15 +19,45 @@ async def translate_text(
         "target": payload.target_lang,
         "format": "text",
     }
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            r = await client.post(url, json=body)
-            r.raise_for_status()
-            data = r.json()
-    except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"Translator error: {exc}") from exc
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(url, json=body)
+        response.raise_for_status()
+        data = response.json()
+    return data.get("translatedText", "")
 
-    translated = data.get("translatedText", "")
+
+async def _translate_with_mymemory(payload: TranslateRequest) -> str:
+    langpair = f"{payload.source_lang}|{payload.target_lang}"
+    params = {"q": payload.text, "langpair": langpair}
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.get(
+            "https://api.mymemory.translated.net/get",
+            params=params,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+    translated = data.get("responseData", {}).get("translatedText", "")
+    if not translated:
+        raise httpx.HTTPError("MyMemory returned an empty translation")
+    return translated
+
+
+@router.post("/text", response_model=TranslateResponse)
+async def translate_text(
+    payload: TranslateRequest,
+    current: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> TranslateResponse:
+    """Proxy text translation to the configured provider, save to history."""
+    try:
+        translated = await _translate_with_libretranslate(payload)
+    except httpx.HTTPError:
+        try:
+            translated = await _translate_with_mymemory(payload)
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail=f"Translator error: {exc}") from exc
+
     history_id: int | None = None
     if payload.save_history and translated:
         item = TranslationHistory(
