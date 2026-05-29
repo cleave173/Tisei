@@ -17,5 +17,7 @@ RUN pip install psycopg2-binary==2.9.10
 
 COPY . .
 
+RUN chmod +x entrypoint.sh
+
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["./entrypoint.sh"]

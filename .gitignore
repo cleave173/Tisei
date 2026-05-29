@@ -52,6 +52,7 @@ __pycache__/
 *.env
 !.env.example
 backend/.env
+backend/.env.railway
 infra/.env
 
 ### Flutter ###

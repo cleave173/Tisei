@@ -38,13 +38,14 @@ final Provider<Dio> dioProvider = Provider<Dio>((Ref ref) {
   // Attach access token to every request
   dio.interceptors.add(
     InterceptorsWrapper(
-      onRequest: (RequestOptions options, RequestInterceptorHandler handler) async {
-        final String? token = await storage.read(key: kAccessTokenKey);
-        if (token != null && token.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        handler.next(options);
-      },
+      onRequest:
+          (RequestOptions options, RequestInterceptorHandler handler) async {
+            final String? token = await storage.read(key: kAccessTokenKey);
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+            handler.next(options);
+          },
     ),
   );
 
@@ -62,13 +63,15 @@ final Provider<Dio> dioProvider = Provider<Dio>((Ref ref) {
         }
 
         try {
-          final String? refreshToken = await storage.read(key: kRefreshTokenKey);
+          final String? refreshToken = await storage.read(
+            key: kRefreshTokenKey,
+          );
           if (refreshToken == null || refreshToken.isEmpty) {
             throw Exception('No refresh token stored');
           }
 
           final Response<dynamic> resp = await refreshDio.post(
-            '/api/v1/auth/refresh',
+            '/auth/refresh',
             data: <String, String>{'refresh_token': refreshToken},
           );
 

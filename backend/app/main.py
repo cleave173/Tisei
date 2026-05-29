@@ -4,11 +4,13 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.db.session import engine
 from app.core.limiter import limiter
 
 
@@ -46,9 +48,13 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["meta"])
     async def health() -> dict:
-        import re
-        masked = re.sub(r":([^:@/]+)@", ":***@", settings.database_url)
-        return {"status": "ok", "db_url": masked}
+        async with engine.connect() as conn:
+            await conn.execute(text("select 1"))
+        return {
+            "status": "ok",
+            "database": "connected",
+            "database_source": settings.database_source,
+        }
 
     return app
 

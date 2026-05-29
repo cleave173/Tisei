@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     cors_origins: list[str] = ["*"]
 
-    # Database
+    # Database: Railway provides DATABASE_URL directly; fallback to individual vars for local dev.
+    database_url_raw: str | None = Field(default=None, alias="DATABASE_URL")
     postgres_user: str = "tisei"
     postgres_password: str = "tisei"
     postgres_db: str = "tisei"
@@ -48,13 +49,30 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        if self.database_url_raw:
+            # Railway gives postgresql:// or postgres://; convert to asyncpg driver.
+            return self.database_url_raw.replace(
+                "postgresql://",
+                "postgresql+asyncpg://",
+                1,
+            ).replace("postgres://", "postgresql+asyncpg://", 1)
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
     @property
+    def database_source(self) -> str:
+        return "DATABASE_URL" if self.database_url_raw else "POSTGRES_*"
+
+    @property
     def sync_database_url(self) -> str:
+        if self.database_url_raw:
+            return self.database_url_raw.replace(
+                "postgresql://",
+                "postgresql+psycopg2://",
+                1,
+            ).replace("postgres://", "postgresql+psycopg2://", 1)
         return (
             f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
