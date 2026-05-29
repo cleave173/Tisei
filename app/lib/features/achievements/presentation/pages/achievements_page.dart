@@ -28,30 +28,36 @@ class AchievementDto {
   final int progress;
   final bool unlocked;
 
-  double get fraction =>
-      requirementValue > 0 ? (progress / requirementValue).clamp(0.0, 1.0) : 0.0;
+  double get fraction => requirementValue > 0
+      ? (progress / requirementValue).clamp(0.0, 1.0)
+      : 0.0;
 
   factory AchievementDto.fromJson(Map<String, dynamic> j) => AchievementDto(
-        id: j['id'] as int,
-        code: j['code'] as String,
-        name: j['name'] as String,
-        description: (j['description'] as String?) ?? '',
-        stars: (j['stars'] as int?) ?? 1,
-        requirementValue: (j['requirement_value'] as int?) ?? 1,
-        progress: (j['progress'] as int?) ?? 0,
-        unlocked: (j['unlocked'] as bool?) ?? false,
-      );
+    id: j['id'] as int,
+    code: j['code'] as String,
+    name: j['name'] as String,
+    description: (j['description'] as String?) ?? '',
+    stars: (j['stars'] as int?) ?? 1,
+    requirementValue: (j['requirement_value'] as int?) ?? 1,
+    progress: (j['progress'] as int?) ?? 0,
+    unlocked: (j['unlocked'] as bool?) ?? false,
+  );
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 final AutoDisposeFutureProvider<List<AchievementDto>> achievementsProvider =
     FutureProvider.autoDispose<List<AchievementDto>>((Ref ref) async {
-  final dynamic raw = await ref.read(apiClientProvider).get('/achievements');
-  return (raw as List<dynamic>)
-      .map((dynamic e) => AchievementDto.fromJson(Map<String, dynamic>.from(e as Map)))
-      .toList();
-});
+      final dynamic raw = await ref
+          .read(apiClientProvider)
+          .get('/achievements');
+      return (raw as List<dynamic>)
+          .map(
+            (dynamic e) =>
+                AchievementDto.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
+          .toList();
+    });
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -74,7 +80,9 @@ class _AchievementsPageState extends ConsumerState<AchievementsPage>
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<List<AchievementDto>> data = ref.watch(achievementsProvider);
+    final AsyncValue<List<AchievementDto>> data = ref.watch(
+      achievementsProvider,
+    );
 
     final ColorScheme cs = Theme.of(context).colorScheme;
     return Scaffold(
@@ -118,7 +126,11 @@ class _AchievementsPageState extends ConsumerState<AchievementsPage>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Icon(Icons.cloud_off_rounded, size: 48, color: Color(0xFFC62828)),
+              const Icon(
+                Icons.cloud_off_rounded,
+                size: 48,
+                color: Color(0xFFC62828),
+              ),
               const SizedBox(height: 12),
               Text(AppSnackBar.friendlyMessage(e), textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -131,7 +143,9 @@ class _AchievementsPageState extends ConsumerState<AchievementsPage>
           ),
         ),
         data: (List<AchievementDto> all) {
-          final List<AchievementDto> unlocked = all.where((AchievementDto a) => a.unlocked).toList();
+          final List<AchievementDto> unlocked = all
+              .where((AchievementDto a) => a.unlocked)
+              .toList();
           final List<AchievementDto> inProgress = all
               .where((AchievementDto a) => !a.unlocked && a.progress > 0)
               .toList();
@@ -141,8 +155,14 @@ class _AchievementsPageState extends ConsumerState<AchievementsPage>
               controller: _tabs,
               children: <Widget>[
                 _AchievementList(items: all),
-                _AchievementList(items: unlocked, emptyKey: 'achievements.none_unlocked'),
-                _AchievementList(items: inProgress, emptyKey: 'achievements.none_in_progress'),
+                _AchievementList(
+                  items: unlocked,
+                  emptyKey: 'achievements.none_unlocked',
+                ),
+                _AchievementList(
+                  items: inProgress,
+                  emptyKey: 'achievements.none_in_progress',
+                ),
               ],
             ),
           );
@@ -165,15 +185,19 @@ class _AchievementList extends StatelessWidget {
       return Center(
         child: Text(
           emptyKey != null ? emptyKey!.tr() : 'achievements.placeholder'.tr(),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (BuildContext ctx, int i) => _AchievementCard(item: items[i]),
+      separatorBuilder: (BuildContext context, int index) =>
+          const SizedBox(height: 8),
+      itemBuilder: (BuildContext ctx, int i) =>
+          _AchievementCard(item: items[i]),
     );
   }
 }
@@ -186,13 +210,23 @@ class _AchievementCard extends StatelessWidget {
 
   static const Map<String, IconData> _icons = <String, IconData>{
     'first_lesson': Icons.school_rounded,
+    'warmup_5': Icons.directions_run_rounded,
     'studious_10': Icons.menu_book_rounded,
+    'chapter_runner': Icons.flag_rounded,
     'studious_50': Icons.auto_stories_rounded,
+    'century_club': Icons.military_tech_rounded,
     'quickie': Icons.bolt_rounded,
+    'xp_spark': Icons.trending_up_rounded,
     'ambitious': Icons.fitness_center_rounded,
+    'xp_engine': Icons.workspace_premium_rounded,
+    'spark_3': Icons.whatshot_rounded,
     'streak_7': Icons.local_fire_department_rounded,
+    'fortnight_focus': Icons.calendar_month_rounded,
     'streak_30': Icons.local_fire_department_rounded,
+    'habit_anchor': Icons.anchor_rounded,
+    'word_scout': Icons.explore_rounded,
     'vocab_100': Icons.library_books_rounded,
+    'lexicon_keeper': Icons.bookmarks_rounded,
     'translator_50': Icons.translate_rounded,
   };
 
@@ -218,9 +252,11 @@ class _AchievementCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Icon(icon,
-                  size: 26,
-                  color: unlocked ? cs.onPrimaryContainer : cs.onSurfaceVariant),
+              child: Icon(
+                icon,
+                size: 26,
+                color: unlocked ? cs.onPrimaryContainer : cs.onSurfaceVariant,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -230,32 +266,50 @@ class _AchievementCard extends StatelessWidget {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: Text(item.name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: unlocked ? null : cs.onSurfaceVariant,
-                            )),
+                        child: Text(
+                          item.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: unlocked ? null : cs.onSurfaceVariant,
+                          ),
+                        ),
                       ),
                       if (unlocked)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2E7D32),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text('achievements.unlocked'.tr(),
-                              style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          child: Text(
+                            'achievements.unlocked'.tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
+                          ),
                         )
                       else
                         Row(
-                          children: List<Widget>.generate(item.stars,
-                              (_) => const Icon(Icons.star_rounded, size: 13, color: Colors.amber)),
+                          children: List<Widget>.generate(
+                            item.stars,
+                            (_) => const Icon(
+                              Icons.star_rounded,
+                              size: 13,
+                              color: Colors.amber,
+                            ),
+                          ),
                         ),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text(item.description,
-                      style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                  Text(
+                    item.description,
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
                   const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
@@ -267,8 +321,10 @@ class _AchievementCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('${item.progress} / ${item.requirementValue}',
-                      style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                  Text(
+                    '${item.progress} / ${item.requirementValue}',
+                    style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                  ),
                 ],
               ),
             ),

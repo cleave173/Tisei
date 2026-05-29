@@ -52,12 +52,22 @@ async def grant_achievements(db: AsyncSession, user_id: int) -> list[str]:
 
     progress_map: dict[str, int] = {
         "first_lesson": completed_lessons,
+        "warmup_5": completed_lessons,
         "studious_10": completed_lessons,
+        "chapter_runner": completed_lessons,
         "studious_50": completed_lessons,
+        "century_club": completed_lessons,
+        "xp_spark": xp,
         "ambitious": xp,
+        "xp_engine": xp,
+        "spark_3": streak,
         "streak_7": streak,
+        "fortnight_focus": streak,
         "streak_30": streak,
+        "habit_anchor": streak,
+        "word_scout": words_learned,
         "vocab_100": words_learned,
+        "lexicon_keeper": words_learned,
         "translator_50": translator_count,
         # "quickie" requires timing data — skipped here; grant it externally if needed.
     }
