@@ -234,6 +234,8 @@ async def generate_placement(
             if q is not None:
                 questions.append(q)
 
+    rng.shuffle(questions)
+
     # Persist a pending assessment row so client can reference it on submit.
     attempt = LevelAssessment(
         user_id=user.id,

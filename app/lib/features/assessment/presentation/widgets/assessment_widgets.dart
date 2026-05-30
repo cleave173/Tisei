@@ -30,50 +30,74 @@ class AssessmentQuizScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool answered = pickedOption != null;
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme cs = theme.colorScheme;
+    final double progress = (index + 1) / total;
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      backgroundColor: cs.surface,
+      appBar: AppBar(
+        title: Text(title),
+        centerTitle: true,
+        backgroundColor: cs.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
       body: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: (index + 1) / total,
-                minHeight: 8,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Column(
               children: <Widget>[
-                Text(
-                  'assessment.question_of'.tr(
-                    args: <String>[(index + 1).toString(), total.toString()],
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'assessment.question_of'.tr(
+                        args: <String>[
+                          (index + 1).toString(),
+                          total.toString(),
+                        ],
+                      ),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '${(progress * 100).round()}%',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: cs.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
-                CefrLevelChip(level: question.level),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 7,
+                    backgroundColor: cs.primary.withValues(alpha: 0.12),
+                  ),
+                ),
               ],
             ),
           ),
           // ── Honest-answer reminder ────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(10),
+                color: cs.primaryContainer.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
                 children: <Widget>[
                   Icon(
                     Icons.info_outline_rounded,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: 18,
+                    color: cs.onPrimaryContainer,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -81,7 +105,8 @@ class AssessmentQuizScreen extends StatelessWidget {
                       'assessment.answer_honestly'.tr(),
                       style: TextStyle(
                         fontSize: 13,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        color: cs.onPrimaryContainer,
+                        height: 1.25,
                       ),
                     ),
                   ),
@@ -91,37 +116,59 @@ class AssessmentQuizScreen extends StatelessWidget {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  const SizedBox(height: 16),
-                  Text(
-                    'assessment.translate_word'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    question.lemma,
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (question.ipa != null) ...<Widget>[
-                    const SizedBox(height: 4),
-                    Text(
-                      '/${question.ipa}/',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: cs.outlineVariant.withValues(alpha: 0.7),
                       ),
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                  ],
-                  const SizedBox(height: 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'assessment.translate_word'.tr(),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: cs.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          question.lemma,
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                        if (question.ipa != null) ...<Widget>[
+                          const SizedBox(height: 6),
+                          Text(
+                            '/${question.ipa}/',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: cs.onSurfaceVariant,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
                   ...question.options.map(
                     (String opt) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -139,7 +186,7 @@ class AssessmentQuizScreen extends StatelessWidget {
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -158,7 +205,7 @@ class AssessmentQuizScreen extends StatelessWidget {
                   else if (onSkip != null)
                     SizedBox(
                       width: double.infinity,
-                      child: TextButton(
+                      child: OutlinedButton(
                         onPressed: onSkip,
                         child: Text(
                           'assessment.dont_know'.tr(),
@@ -191,30 +238,41 @@ class AssessmentOptionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isThis = picked == label;
-    final Color primary = Theme.of(context).colorScheme.primary;
-    final Color borderColor =
-        isThis ? primary : Theme.of(context).colorScheme.outline;
-    final Color? bgColor =
-        isThis ? primary.withValues(alpha: 0.08) : null;
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Color borderColor = isThis
+        ? cs.primary
+        : cs.outlineVariant.withValues(alpha: 0.9);
+    final Color bgColor = isThis
+        ? cs.primaryContainer.withValues(alpha: 0.5)
+        : cs.surfaceContainerLowest;
 
     return Material(
-      color: bgColor ?? Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+      color: bgColor,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          constraints: const BoxConstraints(minHeight: 62),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
           decoration: BoxDecoration(
-            border: Border.all(color: borderColor, width: isThis ? 2 : 1),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: isThis ? 1.8 : 1.2),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.025),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 16,
-              fontWeight: isThis ? FontWeight.w600 : FontWeight.normal,
-              color: isThis ? primary : null,
+              fontWeight: isThis ? FontWeight.w700 : FontWeight.w600,
+              color: isThis ? cs.primary : cs.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
@@ -260,18 +318,16 @@ class CefrLevelChip extends StatelessWidget {
 }
 
 class AssessmentScoreBreakdown extends StatelessWidget {
-  const AssessmentScoreBreakdown({
-    super.key,
-    required this.scoresByLevel,
-  });
+  const AssessmentScoreBreakdown({super.key, required this.scoresByLevel});
 
   final Map<String, LevelScoreDto> scoresByLevel;
 
   @override
   Widget build(BuildContext context) {
     const List<String> order = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    final List<String> keys =
-        order.where((k) => scoresByLevel.containsKey(k)).toList();
+    final List<String> keys = order
+        .where((k) => scoresByLevel.containsKey(k))
+        .toList();
     if (keys.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,8 +347,10 @@ class AssessmentScoreBreakdown extends StatelessWidget {
               children: <Widget>[
                 SizedBox(
                   width: 36,
-                  child:
-                      Text(k, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  child: Text(
+                    k,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
                 Expanded(
                   child: ClipRRect(
@@ -300,7 +358,9 @@ class AssessmentScoreBreakdown extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: pct,
                       minHeight: 10,
-                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         pct >= 0.7 ? const Color(0xFF4CD964) : Colors.orange,
                       ),
@@ -308,8 +368,13 @@ class AssessmentScoreBreakdown extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('${s.correct}/${s.total}',
-                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  '${s.correct}/${s.total}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           );
