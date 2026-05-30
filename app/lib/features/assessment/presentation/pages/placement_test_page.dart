@@ -137,14 +137,14 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
     // ── 2. Loading ────────────────────────────────────────────────────────────
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text('assessment.placement_title'.tr())),
+        appBar: AppBar(title: Text('assessment.placement_short_title'.tr())),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     // ── 3. Error ──────────────────────────────────────────────────────────────
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: Text('assessment.placement_title'.tr())),
+        appBar: AppBar(title: Text('assessment.placement_short_title'.tr())),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -163,7 +163,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
     }
     // ── 5. Quiz ───────────────────────────────────────────────────────────────
     return AssessmentQuizScreen(
-      title: 'assessment.placement_title'.tr(),
+      title: 'assessment.placement_short_title'.tr(),
       question: _q,
       index: _index,
       total: _total,

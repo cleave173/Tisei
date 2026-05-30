@@ -35,40 +35,27 @@ class AssessmentQuizScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[cs.primary, cs.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.psychology_alt_rounded,
-                size: 18,
-                color: cs.onPrimaryContainer,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
-                ),
-              ),
-            ),
+            const Icon(Icons.psychology_alt_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text(title),
           ],
         ),
         centerTitle: true,
-        backgroundColor: cs.surface,
-        surfaceTintColor: Colors.transparent,
       ),
       body: Column(
         children: <Widget>[
@@ -76,29 +63,16 @@ class AssessmentQuizScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Column(
               children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'assessment.question_of'.tr(
-                        args: <String>[
-                          (index + 1).toString(),
-                          total.toString(),
-                        ],
-                      ),
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'assessment.question_of'.tr(
+                      args: <String>[(index + 1).toString(), total.toString()],
                     ),
-                    Text(
-                      '${index + 1}/$total',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -174,17 +148,6 @@ class AssessmentQuizScreen extends StatelessWidget {
                             letterSpacing: 0,
                           ),
                         ),
-                        if (question.ipa != null) ...<Widget>[
-                          const SizedBox(height: 6),
-                          Text(
-                            '/${question.ipa}/',
-                            style: TextStyle(
-                              fontSize: 17,
-                              color: cs.onSurfaceVariant,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),

@@ -242,6 +242,7 @@
   },
   "assessment": {
     "placement_title": "Деңгейді анықтау тесті",
+    "placement_short_title": "Деңгей тесті",
     "level_up_title": "Деңгейді көтеру тесті",
     "level_up_subtitle": "{} деңгейден көтеру",
     "translate_word": "Дұрыс аударманы таңдаңыз",

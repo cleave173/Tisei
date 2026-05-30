@@ -242,6 +242,7 @@
   },
   "assessment": {
     "placement_title": "Placement Test",
+    "placement_short_title": "Level Check",
     "level_up_title": "Level-Up Test",
     "level_up_subtitle": "Level Up from {}",
     "translate_word": "Choose the correct translation",

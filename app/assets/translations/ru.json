@@ -242,6 +242,7 @@
   },
   "assessment": {
     "placement_title": "Тест на определение уровня",
+    "placement_short_title": "Тест уровня",
     "level_up_title": "Тест на повышение уровня",
     "level_up_subtitle": "Повышение уровня с {}",
     "translate_word": "Выберите правильный перевод",
