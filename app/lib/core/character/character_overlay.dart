@@ -391,14 +391,12 @@ class _CharacterPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final ThemeData appTheme = Theme.of(context);
+    final ColorScheme cs = appTheme.colorScheme;
+    final bool isDark = appTheme.brightness == Brightness.dark;
     final Color surface = isDark
-        ? Color.lerp(
-            Theme.of(context).colorScheme.surface,
-            theme.primary,
-            0.07,
-          )!
-        : Theme.of(context).colorScheme.surface;
+        ? Color.lerp(cs.surface, theme.primary, 0.06)!
+        : Color.lerp(cs.surface, Colors.white, 0.55)!;
 
     final double screenWidth = MediaQuery.sizeOf(context).width;
     final bool compact = screenWidth < 390;
@@ -440,7 +438,7 @@ class _CharacterPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: EdgeInsets.fromLTRB(24, 28, compact ? 116 : 132, 28),
+              padding: EdgeInsets.fromLTRB(26, 30, compact ? 120 : 138, 30),
               child: _MessageContent(
                 scenario: scenario,
                 theme: theme,
@@ -458,11 +456,10 @@ class _CharacterPanel extends StatelessWidget {
               child: Text(
                 'character.tap_dismiss'.tr(),
                 style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.28),
-                  letterSpacing: 0.4,
+                  fontSize: 10.5,
+                  color: cs.onSurface.withValues(alpha: 0.34),
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.w600,
                   decoration: TextDecoration.none,
                 ),
               ),
@@ -504,22 +501,26 @@ class _MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Color titleColor = Color.lerp(cs.onSurface, theme.secondary, 0.18)!;
+    final Color bodyColor = cs.onSurface.withValues(alpha: 0.58);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: theme.primary.withValues(alpha: 0.13),
+            color: theme.accent.withValues(alpha: 0.18),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             scenario.nameKey.tr(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w700,
-              color: theme.primary,
+              color: Color.lerp(theme.primary, cs.onSurface, 0.18),
               letterSpacing: 0,
               decoration: TextDecoration.none,
             ),
@@ -527,14 +528,15 @@ class _MessageContent extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
           scenario.messageKey.tr(),
           style: TextStyle(
-            fontSize: compact ? 21 : 23,
+            fontSize: compact ? 18.5 : 20.5,
             fontWeight: FontWeight.w800,
-            height: 1.1,
+            height: 1.14,
             letterSpacing: 0,
+            color: titleColor,
             decoration: TextDecoration.none,
           ),
           maxLines: 3,
@@ -544,11 +546,10 @@ class _MessageContent extends StatelessWidget {
         Text(
           scenario.subMessageKey.tr(),
           style: TextStyle(
-            fontSize: compact ? 12 : 12.5,
-            height: 1.38,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.55),
+            fontSize: compact ? 11.5 : 12,
+            fontWeight: FontWeight.w600,
+            height: 1.34,
+            color: bodyColor,
             decoration: TextDecoration.none,
           ),
           maxLines: 4,
@@ -645,7 +646,7 @@ class _CustomImageChar extends StatelessWidget {
                   _DefaultMascot(scenario: scenario, theme: theme),
             ),
           ),
-          const Positioned(top: 72, child: _Taqiya(width: 66, height: 39)),
+          const Positioned(top: 8, child: _Taqiya(width: 60, height: 36)),
         ],
       ),
     );
