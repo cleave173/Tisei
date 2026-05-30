@@ -27,11 +27,70 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 _PUNCT_RE = re.compile(r"[^\w\s']", flags=re.UNICODE)
+_NUMBER_WORDS_0_TO_19 = {
+    0: "zero",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve",
+    13: "thirteen",
+    14: "fourteen",
+    15: "fifteen",
+    16: "sixteen",
+    17: "seventeen",
+    18: "eighteen",
+    19: "nineteen",
+}
+_NUMBER_WORDS_TENS = {
+    20: "twenty",
+    30: "thirty",
+    40: "forty",
+    50: "fifty",
+    60: "sixty",
+    70: "seventy",
+    80: "eighty",
+    90: "ninety",
+}
+
+
+def _number_to_words(value: int) -> str:
+    """Convert common STT digit output into English words for scoring."""
+    if value < 20:
+        return _NUMBER_WORDS_0_TO_19[value]
+    if value < 100:
+        tens = value // 10 * 10
+        ones = value % 10
+        if ones == 0:
+            return _NUMBER_WORDS_TENS[tens]
+        return f"{_NUMBER_WORDS_TENS[tens]} {_NUMBER_WORDS_0_TO_19[ones]}"
+    if value < 1000:
+        hundreds = value // 100
+        rest = value % 100
+        prefix = f"{_NUMBER_WORDS_0_TO_19[hundreds]} hundred"
+        return prefix if rest == 0 else f"{prefix} {_number_to_words(rest)}"
+    return str(value)
+
+
+def _expand_digits(text: str) -> str:
+    return re.sub(
+        r"\b\d{1,3}\b",
+        lambda m: _number_to_words(int(m.group(0))),
+        text,
+    )
 
 
 def _normalize(text: str) -> str:
     """Lowercase, strip punctuation, collapse whitespace."""
     text = text.lower().strip()
+    text = _expand_digits(text)
     text = _PUNCT_RE.sub(" ", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()

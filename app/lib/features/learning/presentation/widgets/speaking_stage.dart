@@ -80,7 +80,10 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
     String last = '';
     await _stt.listen(
       localeId: 'en_US',
-      listenOptions: stt.SpeechListenOptions(partialResults: true, cancelOnError: true),
+      listenOptions: stt.SpeechListenOptions(
+        partialResults: true,
+        cancelOnError: true,
+      ),
       onResult: (r) {
         last = r.recognizedWords;
         if (mounted) setState(() => _recognizedDraft = last);
@@ -101,10 +104,9 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
   Future<void> _evaluate(WordDto target, String recognized) async {
     setState(() => _evaluating = true);
     try {
-      final SpeakingResultDto r = await ref.read(speakingRepositoryProvider).evaluate(
-            targetText: target.lemma,
-            recognizedText: recognized,
-          );
+      final SpeakingResultDto r = await ref
+          .read(speakingRepositoryProvider)
+          .evaluate(targetText: target.lemma, recognizedText: recognized);
       if (!mounted) return;
       setState(() {
         _lastResult = r;
@@ -161,12 +163,19 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
               ),
               const SizedBox(height: 16),
               Text(
-                passed ? 'speaking.stage_pass'.tr() : 'speaking.stage_fail'.tr(),
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                passed
+                    ? 'speaking.stage_pass'.tr()
+                    : 'speaking.stage_fail'.tr(),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 8),
-              Text('$_passedCount / $total · $score%',
-                  style: const TextStyle(color: Colors.black54)),
+              Text(
+                '$_passedCount / $total · $score%',
+                style: const TextStyle(color: Colors.black54),
+              ),
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: () => Navigator.of(context).maybePop(),
@@ -188,12 +197,18 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Row(
             children: <Widget>[
-              Text('${_index + 1} / $total',
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                '${_index + 1} / $total',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               const Spacer(),
-              Text(w.cefrBadge,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary)),
+              Text(
+                w.cefrBadge,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
             ],
           ),
         ),
@@ -206,9 +221,13 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
                 children: <Widget>[
                   Text(
                     w.lemma,
-                    style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontSize: 44,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                  if (w.transcriptionIpa != null && w.transcriptionIpa!.isNotEmpty)
+                  if (w.transcriptionIpa != null &&
+                      w.transcriptionIpa!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
@@ -230,7 +249,9 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
                   Text(
                     'speaking.tap_to_record'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (_recognizedDraft.isNotEmpty)
@@ -238,7 +259,10 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
                       padding: const EdgeInsets.only(bottom: 24),
                       child: Text(
                         '"$_recognizedDraft"',
-                        style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
                   if (_lastResult != null) _ResultBanner(result: _lastResult!),
@@ -254,30 +278,50 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
             child: Row(
               children: <Widget>[
                 Expanded(
+                  flex: 3,
                   child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                    ),
                     onPressed: _evaluating || _listening ? null : _next,
                     icon: const Icon(Icons.skip_next),
-                    label: Text('common.skip'.tr()),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'common.skip'.tr(),
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  flex: 2,
+                  flex: 5,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                      backgroundColor: _listening ? Colors.red : Theme.of(context).colorScheme.primary,
+                      backgroundColor: _listening
+                          ? Colors.red
+                          : Theme.of(context).colorScheme.primary,
                     ),
                     onPressed: _sttReady && !_evaluating
                         ? (_listening ? _stop : () => _start(w))
                         : null,
                     icon: Icon(_listening ? Icons.stop_circle : Icons.mic),
-                    label: Text(!_sttReady
-                        ? 'speaking.mic_unavailable'.tr()
-                        : _evaluating
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        !_sttReady
+                            ? 'speaking.mic_unavailable'.tr()
+                            : _evaluating
                             ? 'speaking.evaluating'.tr()
                             : _listening
-                                ? 'speaking.tap_to_stop'.tr()
-                                : 'speaking.tap_to_speak'.tr()),
+                            ? 'speaking.tap_to_stop'.tr()
+                            : 'speaking.tap_to_speak'.tr(),
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
                   ),
                 ),
               ],

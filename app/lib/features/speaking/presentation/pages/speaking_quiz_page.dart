@@ -74,7 +74,10 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
     String last = '';
     await _stt.listen(
       localeId: 'en_US',
-      listenOptions: stt.SpeechListenOptions(partialResults: true, cancelOnError: true),
+      listenOptions: stt.SpeechListenOptions(
+        partialResults: true,
+        cancelOnError: true,
+      ),
       onResult: (r) {
         last = r.recognizedWords;
         if (mounted) setState(() => _recognizedDraft = last);
@@ -97,10 +100,9 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
   Future<void> _evaluate(WordDto target, String recognized) async {
     setState(() => _evaluating = true);
     try {
-      final SpeakingResultDto r = await ref.read(speakingRepositoryProvider).evaluate(
-            targetText: target.lemma,
-            recognizedText: recognized,
-          );
+      final SpeakingResultDto r = await ref
+          .read(speakingRepositoryProvider)
+          .evaluate(targetText: target.lemma, recognizedText: recognized);
       if (!mounted) return;
       setState(() => _lastResult = r);
       if (r.isPass) {
@@ -126,13 +128,13 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
   @override
   Widget build(BuildContext context) {
     final AsyncValue<List<WordDto>> words = ref.watch(
-      wordsByTopicProvider(WordsQuery(topicId: widget.topicId, level: widget.level)),
+      wordsByTopicProvider(
+        WordsQuery(topicId: widget.topicId, level: widget.level),
+      ),
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('speaking.title'.tr()),
-      ),
+      appBar: AppBar(title: Text('speaking.title'.tr())),
       body: words.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object e, _) => Center(child: Text('$e')),
@@ -141,7 +143,10 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
             return Center(child: Text('learning.no_words'.tr()));
           }
           if (_index >= list.length) {
-            return _DoneView(total: list.length, onRestart: () => setState(() => _index = 0));
+            return _DoneView(
+              total: list.length,
+              onRestart: () => setState(() => _index = 0),
+            );
           }
           final WordDto w = list[_index];
           final double progress = _index / list.length;
@@ -152,11 +157,18 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Row(
                   children: <Widget>[
-                    Text('${_index + 1} / ${list.length}',
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text(
+                      '${_index + 1} / ${list.length}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                     const Spacer(),
-                    Text(w.cefrBadge,
-                        style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary)),
+                    Text(
+                      w.cefrBadge,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -169,9 +181,13 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
                       children: <Widget>[
                         Text(
                           w.lemma,
-                          style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800),
+                          style: const TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                        if (w.transcriptionIpa != null && w.transcriptionIpa!.isNotEmpty)
+                        if (w.transcriptionIpa != null &&
+                            w.transcriptionIpa!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
@@ -193,7 +209,9 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
                         Text(
                           'speaking.tap_to_record'.tr(),
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         if (_recognizedDraft.isNotEmpty)
@@ -201,10 +219,14 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
                             padding: const EdgeInsets.only(bottom: 24),
                             child: Text(
                               '"$_recognizedDraft"',
-                              style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           ),
-                        if (_lastResult != null) _ResultBanner(result: _lastResult!),
+                        if (_lastResult != null)
+                          _ResultBanner(result: _lastResult!),
                       ],
                     ),
                   ),
@@ -216,15 +238,26 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
                   child: Row(
                     children: <Widget>[
                       Expanded(
+                        flex: 3,
                         child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                          ),
                           onPressed: _evaluating || _listening ? null : _next,
                           icon: const Icon(Icons.skip_next),
-                          label: Text('common.skip'.tr()),
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'common.skip'.tr(),
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        flex: 2,
+                        flex: 5,
                         child: _MicButton(
                           listening: _listening,
                           evaluating: _evaluating,
@@ -261,11 +294,13 @@ class _MicButton extends StatelessWidget {
     final String label = !ready
         ? 'speaking.mic_unavailable'.tr()
         : evaluating
-            ? 'speaking.evaluating'.tr()
-            : listening
-                ? 'speaking.tap_to_stop'.tr()
-                : 'speaking.tap_to_speak'.tr();
-    final Color color = listening ? Colors.red : Theme.of(context).colorScheme.primary;
+        ? 'speaking.evaluating'.tr()
+        : listening
+        ? 'speaking.tap_to_stop'.tr()
+        : 'speaking.tap_to_speak'.tr();
+    final Color color = listening
+        ? Colors.red
+        : Theme.of(context).colorScheme.primary;
     return FilledButton.icon(
       style: FilledButton.styleFrom(
         backgroundColor: ready ? color : Colors.grey,
@@ -273,7 +308,15 @@ class _MicButton extends StatelessWidget {
       ),
       onPressed: ready && !evaluating ? onTap : null,
       icon: Icon(listening ? Icons.stop_circle : Icons.mic),
-      label: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      label: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          label,
+          maxLines: 1,
+          softWrap: false,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
     );
   }
 }
@@ -302,9 +345,9 @@ class _ResultBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _color().withOpacity(0.12),
+        color: _color().withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _color().withOpacity(0.4)),
+        border: Border.all(color: _color().withValues(alpha: 0.4)),
       ),
       child: Row(
         children: <Widget>[
@@ -316,12 +359,19 @@ class _ResultBanner extends StatelessWidget {
               children: <Widget>[
                 Text(
                   '${result.score}% · ${_feedbackKey().tr()}',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: _color()),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: _color(),
+                  ),
                 ),
                 Text(
                   result.isPass
-                      ? 'speaking.pass_msg'.tr(args: <String>[result.passThreshold.toString()])
-                      : 'speaking.try_again_msg'.tr(args: <String>[result.passThreshold.toString()]),
+                      ? 'speaking.pass_msg'.tr(
+                          args: <String>[result.passThreshold.toString()],
+                        )
+                      : 'speaking.try_again_msg'.tr(
+                          args: <String>[result.passThreshold.toString()],
+                        ),
                   style: const TextStyle(fontSize: 13),
                 ),
               ],
