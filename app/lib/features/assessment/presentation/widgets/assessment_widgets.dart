@@ -32,11 +32,40 @@ class AssessmentQuizScreen extends StatelessWidget {
     final bool answered = pickedOption != null;
     final ThemeData theme = Theme.of(context);
     final ColorScheme cs = theme.colorScheme;
-    final double progress = (index + 1) / total;
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(title),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: cs.primaryContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.psychology_alt_rounded,
+                size: 18,
+                color: cs.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
         centerTitle: true,
         backgroundColor: cs.surface,
         surfaceTintColor: Colors.transparent,
@@ -63,22 +92,13 @@ class AssessmentQuizScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${(progress * 100).round()}%',
+                      '${index + 1}/$total',
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: cs.primary,
+                        color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 7,
-                    backgroundColor: cs.primary.withValues(alpha: 0.12),
-                  ),
                 ),
               ],
             ),
@@ -175,7 +195,7 @@ class AssessmentQuizScreen extends StatelessWidget {
                       child: AssessmentOptionButton(
                         label: opt,
                         picked: pickedOption,
-                        onTap: answered ? null : () => onPick(opt),
+                        onTap: () => onPick(opt),
                       ),
                     ),
                   ),

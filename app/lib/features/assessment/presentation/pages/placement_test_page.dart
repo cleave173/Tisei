@@ -45,8 +45,9 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
       _error = null;
     });
     try {
-      final AssessmentStartDto s =
-          await ref.read(assessmentRepositoryProvider).startPlacement();
+      final AssessmentStartDto s = await ref
+          .read(assessmentRepositoryProvider)
+          .startPlacement();
       setState(() {
         _session = s;
         _loading = false;
@@ -63,9 +64,15 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
   int get _total => _session!.questions.length;
 
   void _pick(String option) {
-    if (_pickedOption != null) return;
-    setState(() => _pickedOption = option);
-    _answers[_q.wordId] = option;
+    setState(() {
+      if (_pickedOption == option) {
+        _pickedOption = null;
+        _answers.remove(_q.wordId);
+      } else {
+        _pickedOption = option;
+        _answers[_q.wordId] = option;
+      }
+    });
   }
 
   void _skip() {
@@ -88,14 +95,16 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
-      final AssessmentResultDto r =
-          await ref.read(assessmentRepositoryProvider).submitPlacement(
-                attemptId: _session!.attemptId,
-                answers: _answers.entries
-                    .map((MapEntry<int, String> e) =>
-                        (wordId: e.key, chosen: e.value))
-                    .toList(),
-              );
+      final AssessmentResultDto r = await ref
+          .read(assessmentRepositoryProvider)
+          .submitPlacement(
+            attemptId: _session!.attemptId,
+            answers: _answers.entries
+                .map(
+                  (MapEntry<int, String> e) => (wordId: e.key, chosen: e.value),
+                )
+                .toList(),
+          );
       await ref.read(authControllerProvider.notifier).refresh();
       ref.invalidate(levelStatusProvider);
       if (mounted) {
@@ -142,10 +151,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
             children: <Widget>[
               Text(_error!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _start,
-                child: Text('common.retry'.tr()),
-              ),
+              FilledButton(onPressed: _start, child: Text('common.retry'.tr())),
             ],
           ),
         ),
@@ -175,10 +181,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
 // ---------------------------------------------------------------------------
 
 class _PlacementIntroScreen extends StatelessWidget {
-  const _PlacementIntroScreen({
-    required this.onStart,
-    required this.onSkip,
-  });
+  const _PlacementIntroScreen({required this.onStart, required this.onSkip});
 
   final VoidCallback onStart;
   final VoidCallback onSkip;
@@ -212,10 +215,9 @@ class _PlacementIntroScreen extends StatelessWidget {
                 'assessment.placement_intro_body'.tr(),
                 style: TextStyle(
                   fontSize: 16,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                   height: 1.55,
                 ),
                 textAlign: TextAlign.center,
@@ -260,11 +262,18 @@ class _PlacementResultScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(height: 32),
-              const Icon(Icons.emoji_events_rounded, size: 72, color: Colors.amber),
+              const Icon(
+                Icons.emoji_events_rounded,
+                size: 72,
+                color: Colors.amber,
+              ),
               const SizedBox(height: 24),
               Text(
                 'assessment.placement_done'.tr(),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                ),
                 textAlign: TextAlign.center,
               ),
               if (level != null) ...<Widget>[
@@ -273,11 +282,16 @@ class _PlacementResultScreen extends ConsumerWidget {
               ],
               const SizedBox(height: 16),
               Text(
-                'assessment.score_summary'.tr(args: <String>[
-                  result.totalCorrect.toString(),
-                  result.totalQuestions.toString(),
-                ]),
-                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                'assessment.score_summary'.tr(
+                  args: <String>[
+                    result.totalCorrect.toString(),
+                    result.totalQuestions.toString(),
+                  ],
+                ),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
