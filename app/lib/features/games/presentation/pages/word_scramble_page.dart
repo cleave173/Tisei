@@ -37,7 +37,9 @@ class _WordScramblePageState extends ConsumerState<WordScramblePage> {
   void initState() {
     super.initState();
     final String? userLevel = readUserCefrLevel(ref);
-    if (userLevel != null && userLevel.isNotEmpty) _level = userLevel.toUpperCase();
+    if (userLevel != null && userLevel.isNotEmpty) {
+      _level = userLevel.toUpperCase();
+    }
     _load();
   }
 
@@ -131,8 +133,11 @@ class _WordScramblePageState extends ConsumerState<WordScramblePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('games.word_scramble.title'.tr()),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: buildGameAppBar(
+        context,
+        titleKey: 'games.word_scramble.title',
+        icon: Icons.sort_by_alpha_rounded,
         actions: <Widget>[
           IconButton(
             tooltip: 'games.rules'.tr(),
@@ -175,10 +180,8 @@ class _WordScramblePageState extends ConsumerState<WordScramblePage> {
         child: Center(
           child: GameDoneBar(
             title: 'games.done'.tr(),
-            subtitle: '${'games.score'.tr(args: <String>[
-                  _correctCount.toString(),
-                  d.items.length.toString(),
-                ])}${_wrong > 0 ? ' \u00B7 ${'games.mistakes'.tr(args: <String>[_wrong.toString()])}' : ''}',
+            subtitle:
+                '${'games.score'.tr(args: <String>[_correctCount.toString(), d.items.length.toString()])}${_wrong > 0 ? ' \u00B7 ${'games.mistakes'.tr(args: <String>[_wrong.toString()])}' : ''}',
             onReplay: _load,
             onClose: () => context.pop(),
           ),
@@ -199,20 +202,40 @@ class _WordScramblePageState extends ConsumerState<WordScramblePage> {
             trailing: '${_index + 1}/${d.items.length}',
           ),
           const SizedBox(height: 24),
-          Text(
-            it.translation,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-          ),
-          if (it.hint != null && it.hint!.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 6),
-            Text(
-              it.hint!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
-          ],
-          const SizedBox(height: 32),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  it.translation,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (it.hint != null && it.hint!.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 8),
+                  Text(
+                    it.hint!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
           _LetterRow(
             letters: _picked,
             emptySlots: it.word.length - _picked.length,
@@ -238,15 +261,18 @@ class _WordScramblePageState extends ConsumerState<WordScramblePage> {
                 child: FilledButton(
                   onPressed: _next,
                   style: FilledButton.styleFrom(
-                    backgroundColor:
-                        _lastCorrect ? AppTheme.successGreen : AppTheme.errorRed,
+                    backgroundColor: _lastCorrect
+                        ? AppTheme.successGreen
+                        : AppTheme.errorRed,
                   ),
                   child: Text(
                     _lastCorrect
                         ? (_index == d.items.length - 1
-                            ? 'common.finish'.tr()
-                            : 'common.next'.tr())
-                        : 'games.show_answer'.tr(args: <String>[it.word.toUpperCase()]),
+                              ? 'common.finish'.tr()
+                              : 'common.next'.tr())
+                        : 'games.show_answer'.tr(
+                            args: <String>[it.word.toUpperCase()],
+                          ),
                   ),
                 ),
               ),
@@ -320,7 +346,11 @@ class _LetterRow extends StatelessWidget {
       alignment: WrapAlignment.center,
       children: <Widget>[
         ...letters.map(
-          (l) => _LetterSlotBox(letter: l.ch, color: color, onTap: () => onTap?.call(l)),
+          (l) => _LetterSlotBox(
+            letter: l.ch,
+            color: color,
+            onTap: () => onTap?.call(l),
+          ),
         ),
         for (int i = 0; i < emptySlots; i++)
           _LetterSlotBox(letter: '', color: Colors.grey, onTap: null),
@@ -348,7 +378,11 @@ class _LetterSlotBox extends StatelessWidget {
         ),
         child: Text(
           letter.toUpperCase(),
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
         ),
       ),
     );

@@ -23,6 +23,44 @@ String levelLabel(String value) {
   return value.toUpperCase();
 }
 
+AppBar buildGameAppBar(
+  BuildContext context, {
+  required String titleKey,
+  required IconData icon,
+  required List<Widget> actions,
+}) {
+  final ColorScheme cs = Theme.of(context).colorScheme;
+  return AppBar(
+    backgroundColor: Colors.transparent,
+    foregroundColor: Colors.white,
+    elevation: 0,
+    flexibleSpace: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: <Color>[cs.primary, cs.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    ),
+    title: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(icon, size: 20),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            titleKey.tr(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
+    actions: actions,
+  );
+}
+
 /// Shows a modal explaining the rules of a game.
 /// `bodyKey` is the localization key for the rules body (e.g. `games.word_match.rules`).
 Future<void> showGameRulesDialog(
@@ -41,7 +79,10 @@ Future<void> showGameRulesDialog(
         ],
       ),
       content: SingleChildScrollView(
-        child: Text(bodyKey.tr(), style: const TextStyle(fontSize: 14, height: 1.4)),
+        child: Text(
+          bodyKey.tr(),
+          style: const TextStyle(fontSize: 14, height: 1.4),
+        ),
       ),
       actions: <Widget>[
         FilledButton(
@@ -75,11 +116,14 @@ Future<String?> showLevelPickerDialog(
               subtitle: 'games.level_any_hint'.tr(),
               onPick: (String v) => Navigator.of(c).pop(v),
             ),
-            if (userLevel != null && _kCefrLevels.contains(userLevel.toUpperCase()))
+            if (userLevel != null &&
+                _kCefrLevels.contains(userLevel.toUpperCase()))
               _LevelOption(
                 value: userLevel.toUpperCase(),
                 currentValue: currentLevel,
-                title: 'games.level_my'.tr(args: <String>[userLevel.toUpperCase()]),
+                title: 'games.level_my'.tr(
+                  args: <String>[userLevel.toUpperCase()],
+                ),
                 subtitle: 'games.level_my_hint'.tr(),
                 onPick: (String v) => Navigator.of(c).pop(v),
               ),
@@ -91,11 +135,13 @@ Future<String?> showLevelPickerDialog(
             Wrap(
               spacing: 6,
               children: _kCefrLevels
-                  .map((String l) => ChoiceChip(
-                        label: Text(l),
-                        selected: currentLevel == l,
-                        onSelected: (_) => Navigator.of(c).pop(l),
-                      ))
+                  .map(
+                    (String l) => ChoiceChip(
+                      label: Text(l),
+                      selected: currentLevel == l,
+                      onSelected: (_) => Navigator.of(c).pop(l),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -119,44 +165,63 @@ class GameHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            levelLabel(level),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.7)),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: cs.primaryContainer.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(999),
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        if (topic != null && topic!.isNotEmpty)
-          Expanded(
             child: Text(
-              topic!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              levelLabel(level),
+              style: TextStyle(
+                color: cs.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
             ),
-          )
-        else
-          const Spacer(),
-        if (trailing != null)
-          Text(trailing!, style: const TextStyle(color: Colors.black54)),
-      ],
+          ),
+          const SizedBox(width: 10),
+          if (topic != null && topic!.isNotEmpty)
+            Expanded(
+              child: Text(
+                topic!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            )
+          else
+            const Spacer(),
+          if (trailing != null)
+            Text(
+              trailing!,
+              style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
 
 class GameErrorView extends StatelessWidget {
-  const GameErrorView({super.key, required this.message, required this.onRetry});
+  const GameErrorView({
+    super.key,
+    required this.message,
+    required this.onRetry,
+  });
   final String message;
   final VoidCallback onRetry;
 
@@ -185,10 +250,9 @@ class GameErrorView extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: errorColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: errorColor),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
@@ -227,7 +291,8 @@ class GameDoneBar extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Column(
         children: <Widget>[
@@ -290,7 +355,9 @@ class _LevelOption extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: Icon(
         selected ? Icons.radio_button_checked : Icons.radio_button_off,
-        color: selected ? Theme.of(context).colorScheme.primary : Colors.black45,
+        color: selected
+            ? Theme.of(context).colorScheme.primary
+            : Colors.black45,
       ),
       title: Text(title),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),

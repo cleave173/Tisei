@@ -16,7 +16,8 @@ class SentenceBuilderPage extends ConsumerStatefulWidget {
   final String? topic;
 
   @override
-  ConsumerState<SentenceBuilderPage> createState() => _SentenceBuilderPageState();
+  ConsumerState<SentenceBuilderPage> createState() =>
+      _SentenceBuilderPageState();
 }
 
 class _Token {
@@ -43,7 +44,9 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
   void initState() {
     super.initState();
     final String? userLevel = readUserCefrLevel(ref);
-    if (userLevel != null && userLevel.isNotEmpty) _level = userLevel.toUpperCase();
+    if (userLevel != null && userLevel.isNotEmpty) {
+      _level = userLevel.toUpperCase();
+    }
     _load();
   }
 
@@ -59,7 +62,11 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
     try {
       final SentenceBuilderDto d = await ref
           .read(gamesRepositoryProvider)
-          .generateSentenceBuilder(topic: widget.topic, count: 5, level: _level);
+          .generateSentenceBuilder(
+            topic: widget.topic,
+            count: 5,
+            level: _level,
+          );
       setState(() {
         _data = d;
         _loading = false;
@@ -88,7 +95,10 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
     final Random rng = Random();
     for (int safety = 0; safety < 5; safety++) {
       shuffled.shuffle(rng);
-      if (shuffled.map((t) => t.text).toList().join(' ') != it.sentence.trim()) break;
+      if (shuffled.map((t) => t.text).toList().join(' ') !=
+          it.sentence.trim()) {
+        break;
+      }
     }
     _bank = shuffled;
     _picked.clear();
@@ -135,8 +145,11 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('games.sentence_builder.title'.tr()),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: buildGameAppBar(
+        context,
+        titleKey: 'games.sentence_builder.title',
+        icon: Icons.reorder_rounded,
         actions: <Widget>[
           IconButton(
             tooltip: 'games.rules'.tr(),
@@ -179,8 +192,12 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
         child: Center(
           child: GameDoneBar(
             title: 'games.done'.tr(),
-            subtitle: 'games.score'
-                .tr(args: <String>[_correctCount.toString(), d.items.length.toString()]),
+            subtitle: 'games.score'.tr(
+              args: <String>[
+                _correctCount.toString(),
+                d.items.length.toString(),
+              ],
+            ),
             onReplay: _load,
             onClose: () => context.pop(),
           ),
@@ -201,21 +218,31 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
             trailing: '${_index + 1}/${d.items.length}',
           ),
           const SizedBox(height: 16),
-          Text(
-            it.translation,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Text(
+              it.translation,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            ),
           ),
           const SizedBox(height: 24),
           Container(
             constraints: const BoxConstraints(minHeight: 80),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: _showFeedback
                     ? (_lastCorrect ? AppTheme.successGreen : AppTheme.errorRed)
-                    : Colors.grey.shade300,
+                    : Theme.of(context).colorScheme.outlineVariant,
                 width: _showFeedback ? 2 : 1,
               ),
             ),
@@ -232,11 +259,13 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
             spacing: 6,
             runSpacing: 6,
             children: _bank
-                .map((t) => _TokenChip(
-                      text: t.text,
-                      outlined: true,
-                      onTap: () => _pick(t),
-                    ))
+                .map(
+                  (t) => _TokenChip(
+                    text: t.text,
+                    outlined: true,
+                    onTap: () => _pick(t),
+                  ),
+                )
                 .toList(),
           ),
           if (_showFeedback && !_lastCorrect) ...<Widget>[
@@ -269,7 +298,9 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
                       ),
                     )
                   : FilledButton(
-                      onPressed: _picked.length == _targetTokens.length ? _check : null,
+                      onPressed: _picked.length == _targetTokens.length
+                          ? _check
+                          : null,
                       child: Text('common.check'.tr()),
                     ),
             ),
@@ -281,7 +312,11 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
 }
 
 class _TokenChip extends StatelessWidget {
-  const _TokenChip({required this.text, required this.onTap, this.outlined = false});
+  const _TokenChip({
+    required this.text,
+    required this.onTap,
+    this.outlined = false,
+  });
   final String text;
   final VoidCallback onTap;
   final bool outlined;
@@ -290,20 +325,26 @@ class _TokenChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color color = Theme.of(context).colorScheme.primary;
     return Material(
-      color: outlined ? Colors.transparent : color.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(10),
+      color: outlined
+          ? Theme.of(context).colorScheme.surfaceContainerLowest
+          : color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             border: outlined ? Border.all(color: color, width: 1.4) : null,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Text(
             text,
-            style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 15),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
           ),
         ),
       ),

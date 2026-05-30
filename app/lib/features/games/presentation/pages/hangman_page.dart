@@ -20,7 +20,32 @@ class HangmanPage extends ConsumerStatefulWidget {
 class _HangmanPageState extends ConsumerState<HangmanPage> {
   static const int _maxMistakes = 6;
   static const List<String> _alphabet = <String>[
-    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
   ];
 
   HangmanDto? _data;
@@ -35,7 +60,9 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
   void initState() {
     super.initState();
     final String? userLevel = readUserCefrLevel(ref);
-    if (userLevel != null && userLevel.isNotEmpty) _level = userLevel.toUpperCase();
+    if (userLevel != null && userLevel.isNotEmpty) {
+      _level = userLevel.toUpperCase();
+    }
     _load();
   }
 
@@ -64,8 +91,9 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
 
   bool get _isWin {
     if (_data == null) return false;
-    return _data!.word.split('').every((c) =>
-        !RegExp(r'[a-z]').hasMatch(c) || _guessed.contains(c));
+    return _data!.word
+        .split('')
+        .every((c) => !RegExp(r'[a-z]').hasMatch(c) || _guessed.contains(c));
   }
 
   bool get _isLose => _mistakes >= _maxMistakes;
@@ -82,8 +110,11 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('games.hangman.title'.tr()),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: buildGameAppBar(
+        context,
+        titleKey: 'games.hangman.title',
+        icon: Icons.spellcheck_rounded,
         actions: <Widget>[
           IconButton(
             tooltip: 'games.rules'.tr(),
@@ -133,13 +164,31 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
             trailing: '$_mistakes/$_maxMistakes',
           ),
           const SizedBox(height: 12),
-          Text(
-            'games.hangman.hint'.tr(args: <String>[d.hint]),
-            style: const TextStyle(fontSize: 15, color: Colors.black54),
-            textAlign: TextAlign.center,
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  'games.hangman.hint'.tr(args: <String>[d.hint]),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                _HangmanGallows(mistakes: _mistakes, max: _maxMistakes),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          _HangmanGallows(mistakes: _mistakes, max: _maxMistakes),
           const SizedBox(height: 16),
           Center(
             child: Wrap(
@@ -156,7 +205,9 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: isLetter ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                        color: isLetter
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.transparent,
                         width: 2,
                       ),
                     ),
@@ -198,7 +249,10 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
                     ),
                     child: Text(
                       l.toUpperCase(),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 );
@@ -208,12 +262,16 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
           if (finished)
             GameDoneBar(
               success: _isWin,
-              title: _isWin ? 'games.hangman.win'.tr() : 'games.hangman.lose'.tr(),
+              title: _isWin
+                  ? 'games.hangman.win'.tr()
+                  : 'games.hangman.lose'.tr(),
               subtitle: _isWin
-                  ? 'games.hangman.translation_was'
-                      .tr(args: <String>[d.translation])
-                  : 'games.hangman.word_was'
-                      .tr(args: <String>[d.word.toUpperCase(), d.translation]),
+                  ? 'games.hangman.translation_was'.tr(
+                      args: <String>[d.translation],
+                    )
+                  : 'games.hangman.word_was'.tr(
+                      args: <String>[d.word.toUpperCase(), d.translation],
+                    ),
               onReplay: _load,
               onClose: () => context.pop(),
             ),

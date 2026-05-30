@@ -36,7 +36,9 @@ class _WordMatchPageState extends ConsumerState<WordMatchPage> {
   void initState() {
     super.initState();
     final String? userLevel = readUserCefrLevel(ref);
-    if (userLevel != null && userLevel.isNotEmpty) _level = userLevel.toUpperCase();
+    if (userLevel != null && userLevel.isNotEmpty) {
+      _level = userLevel.toUpperCase();
+    }
     _load();
   }
 
@@ -93,8 +95,11 @@ class _WordMatchPageState extends ConsumerState<WordMatchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('games.word_match.title'.tr()),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: buildGameAppBar(
+        context,
+        titleKey: 'games.word_match.title',
+        icon: Icons.compare_arrows_rounded,
         actions: <Widget>[
           IconButton(
             tooltip: 'games.rules'.tr(),
@@ -153,7 +158,8 @@ class _WordMatchPageState extends ConsumerState<WordMatchPage> {
                 Expanded(
                   child: ListView.separated(
                     itemCount: _leftWords.length,
-                    separatorBuilder: (BuildContext _, int i) => const SizedBox(height: 8),
+                    separatorBuilder: (BuildContext _, int i) =>
+                        const SizedBox(height: 8),
                     itemBuilder: (BuildContext c, int i) {
                       final bool matched = _matched.contains(i);
                       final bool selected = _selectedLeft == i;
@@ -175,7 +181,8 @@ class _WordMatchPageState extends ConsumerState<WordMatchPage> {
                 Expanded(
                   child: ListView.separated(
                     itemCount: _rightTranslations.length,
-                    separatorBuilder: (BuildContext _, int i) => const SizedBox(height: 8),
+                    separatorBuilder: (BuildContext _, int i) =>
+                        const SizedBox(height: 8),
                     itemBuilder: (BuildContext c, int i) {
                       final bool matched = _matched.contains(_rightToLeft[i]);
                       final bool selected = _selectedRight == i;
@@ -201,7 +208,9 @@ class _WordMatchPageState extends ConsumerState<WordMatchPage> {
               padding: const EdgeInsets.only(top: 12),
               child: GameDoneBar(
                 title: 'games.done'.tr(),
-                subtitle: 'games.mistakes'.tr(args: <String>[_wrongTaps.toString()]),
+                subtitle: 'games.mistakes'.tr(
+                  args: <String>[_wrongTaps.toString()],
+                ),
                 onReplay: _load,
                 onClose: () => context.pop(),
               ),
@@ -228,39 +237,45 @@ class _Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
+    final ColorScheme cs = Theme.of(context).colorScheme;
     final Color border = matched
         ? AppTheme.successGreen
         : selected
-            ? primary
-            : Theme.of(context).colorScheme.outline;
+        ? primary
+        : cs.outlineVariant;
     final Color bg = matched
         ? AppTheme.successGreen.withValues(alpha: 0.12)
         : selected
-            ? primary.withValues(alpha: 0.08)
-            : Colors.transparent;
+        ? primary.withValues(alpha: 0.10)
+        : cs.surfaceContainerLowest;
     return Material(
       color: bg,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: border, width: selected || matched ? 2 : 1),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: border,
+              width: selected || matched ? 1.8 : 1,
+            ),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             text,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              fontWeight: matched || selected ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: matched || selected
+                  ? FontWeight.w600
+                  : FontWeight.normal,
               color: matched
                   ? AppTheme.successGreen
                   : selected
-                      ? primary
-                      : null,
+                  ? primary
+                  : null,
               decoration: matched ? TextDecoration.lineThrough : null,
             ),
           ),
@@ -269,4 +284,3 @@ class _Tile extends StatelessWidget {
     );
   }
 }
-
