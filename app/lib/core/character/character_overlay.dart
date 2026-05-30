@@ -39,30 +39,35 @@ class _ScenarioTheme {
   const _ScenarioTheme({
     required this.primary,
     required this.secondary,
+    required this.accent,
     required this.hasConfetti,
   });
 
   final Color primary;
   final Color secondary;
+  final Color accent;
   final bool hasConfetti;
 
   static _ScenarioTheme of(CharacterScenario s) => switch (s) {
-        CharacterScenario.lessonCompleted => const _ScenarioTheme(
-            primary: Color(0xFFFFB300),
-            secondary: Color(0xFFFF6F00),
-            hasConfetti: true,
-          ),
-        CharacterScenario.testPassed => const _ScenarioTheme(
-            primary: Color(0xFF00C853),
-            secondary: Color(0xFF00897B),
-            hasConfetti: true,
-          ),
-        CharacterScenario.testFailed => const _ScenarioTheme(
-            primary: Color(0xFFFF5252),
-            secondary: Color(0xFFE040FB),
-            hasConfetti: false,
-          ),
-      };
+    CharacterScenario.lessonCompleted => const _ScenarioTheme(
+      primary: Color(0xFFB8872E),
+      secondary: Color(0xFF27546B),
+      accent: Color(0xFFEAC66B),
+      hasConfetti: true,
+    ),
+    CharacterScenario.testPassed => const _ScenarioTheme(
+      primary: Color(0xFF2F6F73),
+      secondary: Color(0xFF273D63),
+      accent: Color(0xFFE8C766),
+      hasConfetti: true,
+    ),
+    CharacterScenario.testFailed => const _ScenarioTheme(
+      primary: Color(0xFFC84C5A),
+      secondary: Color(0xFF50406F),
+      accent: Color(0xFFE8C766),
+      hasConfetti: false,
+    ),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -73,9 +78,14 @@ const int _kParticleCount = 72;
 const double _kCycleSecs = 8.0;
 
 const List<Color> _kConfettiColors = <Color>[
-  Color(0xFFFF5252), Color(0xFFFFB300), Color(0xFF69F0AE),
-  Color(0xFF40C4FF), Color(0xFFE040FB), Color(0xFFFFFFFF),
-  Color(0xFFFFD740), Color(0xFFFF6E40),
+  Color(0xFFC84C5A),
+  Color(0xFFE8C766),
+  Color(0xFF2F6F73),
+  Color(0xFF5C83A8),
+  Color(0xFF50406F),
+  Color(0xFFFFFFFF),
+  Color(0xFFB8872E),
+  Color(0xFF8E6A42),
 ];
 
 class _ParticleData {
@@ -121,10 +131,8 @@ List<_ParticleData> _buildParticles(Size size) {
 }
 
 class _ConfettiPainter extends CustomPainter {
-  _ConfettiPainter({
-    required this.particles,
-    required this.animation,
-  }) : super(repaint: animation);
+  _ConfettiPainter({required this.particles, required this.animation})
+    : super(repaint: animation);
 
   final List<_ParticleData> particles;
   final Animation<double> animation;
@@ -196,23 +204,23 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
 
     _enterCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 750),
+      duration: const Duration(milliseconds: 620),
     );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 1.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _enterCtrl,
-      curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
-    ));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.34), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _enterCtrl,
+            curve: const Interval(0.0, 0.9, curve: Curves.easeOutCubic),
+          ),
+        );
     _fadeAnim = CurvedAnimation(
       parent: _enterCtrl,
       curve: const Interval(0.0, 0.35, curve: Curves.easeIn),
     );
-    _scaleAnim = Tween<double>(begin: 0.4, end: 1.0).animate(
+    _scaleAnim = Tween<double>(begin: 0.86, end: 1.0).animate(
       CurvedAnimation(
         parent: _enterCtrl,
-        curve: const Interval(0.0, 0.65, curve: Curves.elasticOut),
+        curve: const Interval(0.08, 1.0, curve: Curves.easeOutBack),
       ),
     );
 
@@ -223,10 +231,9 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
 
     _bounceCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 2100),
     )..repeat(reverse: true);
-    _bounceAnim =
-        CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut);
+    _bounceAnim = CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut);
 
     _enterCtrl.forward();
     Future.delayed(widget.autoDismissDuration, _dismiss);
@@ -257,8 +264,7 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
 
     return LayoutBuilder(
       builder: (BuildContext ctx, BoxConstraints constraints) {
-        final Size size =
-            Size(constraints.maxWidth, constraints.maxHeight);
+        final Size size = Size(constraints.maxWidth, constraints.maxHeight);
         if (_particles.isEmpty && theme.hasConfetti) {
           _particles = _buildParticles(size);
         }
@@ -277,8 +283,8 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: <Color>[
-                        Colors.black.withValues(alpha: 0.72),
-                        Colors.black.withValues(alpha: 0.50),
+                        const Color(0xFF111318).withValues(alpha: 0.76),
+                        theme.secondary.withValues(alpha: 0.52),
                       ],
                     ),
                   ),
@@ -307,7 +313,7 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
                   bottom: 240,
                   child: FadeTransition(
                     opacity: _fadeAnim,
-                    child: _SparkleRow(color: theme.primary),
+                    child: _SparkleRow(color: theme.accent),
                   ),
                 ),
 
@@ -384,11 +390,14 @@ class _CharacterPanel extends StatelessWidget {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color surface = isDark
         ? Color.lerp(
-            Theme.of(context).colorScheme.surface, theme.primary, 0.07)!
+            Theme.of(context).colorScheme.surface,
+            theme.primary,
+            0.07,
+          )!
         : Theme.of(context).colorScheme.surface;
 
     return SizedBox(
-      height: 296,
+      height: 318,
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
@@ -397,16 +406,23 @@ class _CharacterPanel extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            top: 52,
+            top: 62,
             child: Container(
               decoration: BoxDecoration(
                 color: surface,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(34)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: theme.accent.withValues(alpha: 0.36),
+                    width: 1.2,
+                  ),
+                ),
                 boxShadow: <BoxShadow>[
                   BoxShadow(
-                    color: theme.primary.withValues(alpha: 0.38),
-                    blurRadius: 52,
+                    color: theme.secondary.withValues(alpha: 0.34),
+                    blurRadius: 44,
                     spreadRadius: -6,
                     offset: const Offset(0, -12),
                   ),
@@ -417,7 +433,7 @@ class _CharacterPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.fromLTRB(28, 32, 152, 20),
+              padding: const EdgeInsets.fromLTRB(28, 34, 150, 24),
               child: _MessageContent(scenario: scenario, theme: theme),
             ),
           ),
@@ -432,10 +448,9 @@ class _CharacterPanel extends StatelessWidget {
                 'character.tap_dismiss'.tr(),
                 style: TextStyle(
                   fontSize: 11,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.28),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.28),
                   letterSpacing: 0.4,
                 ),
               ),
@@ -444,8 +459,8 @@ class _CharacterPanel extends StatelessWidget {
 
           // Character
           Positioned(
-            right: 6,
-            bottom: 0,
+            right: 8,
+            bottom: 6,
             child: _BouncingCharacter(
               scenario: scenario,
               imagePath: imagePath,
@@ -477,8 +492,7 @@ class _MessageContent extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: theme.primary.withValues(alpha: 0.13),
             borderRadius: BorderRadius.circular(20),
@@ -508,10 +522,9 @@ class _MessageContent extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             height: 1.5,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.55),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.55),
           ),
         ),
       ],
@@ -544,18 +557,25 @@ class _BouncingCharacter extends StatelessWidget {
       animation: Listenable.merge(<Listenable>[bounceAnim, scaleAnim]),
       builder: (BuildContext ctx, Widget? child) {
         final double floatOffset = (bounceAnim.value - 0.5) * 14.0;
+        final double tilt = sin(bounceAnim.value * pi * 2) * 0.025;
         return Transform.translate(
           offset: Offset(0, floatOffset),
-          child: Transform.scale(
-            scale: scaleAnim.value,
-            alignment: Alignment.bottomCenter,
-            child: child,
+          child: Transform.rotate(
+            angle: tilt,
+            child: Transform.scale(
+              scale: scaleAnim.value,
+              alignment: Alignment.bottomCenter,
+              child: child,
+            ),
           ),
         );
       },
       child: imagePath != null
           ? _CustomImageChar(
-              imagePath: imagePath!, scenario: scenario, theme: theme)
+              imagePath: imagePath!,
+              scenario: scenario,
+              theme: theme,
+            )
           : _DefaultMascot(scenario: scenario, theme: theme),
     );
   }
@@ -581,12 +601,20 @@ class _CustomImageChar extends StatelessWidget {
     return SizedBox(
       width: 130,
       height: 250,
-      child: Image.file(
-        File(imagePath),
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-        errorBuilder: (_, __, ___) =>
-            _DefaultMascot(scenario: scenario, theme: theme),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: <Widget>[
+          Positioned.fill(
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) =>
+                  _DefaultMascot(scenario: scenario, theme: theme),
+            ),
+          ),
+          const Positioned(top: 8, child: _Taqiya(width: 72, height: 42)),
+        ],
       ),
     );
   }
@@ -666,11 +694,16 @@ class _MascotPainter extends CustomPainter {
     );
 
     // Gradient body
-    final Rect bodyRect =
-        Rect.fromCircle(center: Offset(cx, cy), radius: r * 1.1);
-    canvas.drawCircle(
-      Offset(cx, cy),
-      r,
+    final RRect body = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset(cx, cy),
+        width: r * 1.86,
+        height: r * 2.08,
+      ),
+      Radius.circular(r * 0.58),
+    );
+    canvas.drawRRect(
+      body,
       Paint()
         ..shader = RadialGradient(
           center: const Alignment(-0.35, -0.45),
@@ -681,7 +714,7 @@ class _MascotPainter extends CustomPainter {
             secondary,
           ],
           stops: const <double>[0.0, 0.42, 1.0],
-        ).createShader(bodyRect),
+        ).createShader(body.outerRect),
     );
 
     // Specular top-left highlight
@@ -691,6 +724,17 @@ class _MascotPainter extends CustomPainter {
       Paint()
         ..color = Colors.white.withValues(alpha: 0.32)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+
+    final Paint sashPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = r * 0.09
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(cx - r * 0.56, cy + r * 0.45),
+      Offset(cx + r * 0.56, cy + r * 0.14),
+      sashPaint,
     );
   }
 
@@ -706,14 +750,12 @@ class _MascotPainter extends CustomPainter {
 
       canvas.drawCircle(center, eyeR, Paint()..color = Colors.white);
       canvas.drawCircle(
-        Offset(center.dx - sign * pupilR * 0.15,
-            center.dy + pupilR * 0.08),
+        Offset(center.dx - sign * pupilR * 0.15, center.dy + pupilR * 0.08),
         pupilR,
         Paint()..color = const Color(0xFF263238),
       );
       canvas.drawCircle(
-        Offset(center.dx + sign * pupilR * 0.30,
-            center.dy - pupilR * 0.32),
+        Offset(center.dx + sign * pupilR * 0.30, center.dy - pupilR * 0.32),
         shineR,
         Paint()..color = Colors.white,
       );
@@ -735,7 +777,11 @@ class _MascotPainter extends CustomPainter {
       final Path brow = Path()
         ..moveTo(bx - sign * r * 0.18, by + dip.abs() * 0.5)
         ..quadraticBezierTo(
-            bx, by + dip, bx + sign * r * 0.18, by + dip.abs() * 0.5);
+          bx,
+          by + dip,
+          bx + sign * r * 0.18,
+          by + dip.abs() * 0.5,
+        );
       canvas.drawPath(brow, browPaint);
     }
   }
@@ -756,34 +802,33 @@ class _MascotPainter extends CustomPainter {
       path.quadraticBezierTo(cx, mouthY + r * 0.27, cx + mw, mouthY);
 
       // Cheeks
-      final Paint cheek = Paint()
-        ..color = Colors.white.withValues(alpha: 0.17);
+      final Paint cheek = Paint()..color = Colors.white.withValues(alpha: 0.17);
       canvas.drawOval(
         Rect.fromCenter(
-            center: Offset(cx - r * 0.53, mouthY - r * 0.05),
-            width: r * 0.38,
-            height: r * 0.22),
+          center: Offset(cx - r * 0.53, mouthY - r * 0.05),
+          width: r * 0.38,
+          height: r * 0.22,
+        ),
         cheek,
       );
       canvas.drawOval(
         Rect.fromCenter(
-            center: Offset(cx + r * 0.53, mouthY - r * 0.05),
-            width: r * 0.38,
-            height: r * 0.22),
+          center: Offset(cx + r * 0.53, mouthY - r * 0.05),
+          width: r * 0.38,
+          height: r * 0.22,
+        ),
         cheek,
       );
     } else {
       path.moveTo(cx - mw, mouthY + r * 0.13);
-      path.quadraticBezierTo(
-          cx, mouthY - r * 0.15, cx + mw, mouthY + r * 0.13);
+      path.quadraticBezierTo(cx, mouthY - r * 0.15, cx + mw, mouthY + r * 0.13);
     }
     canvas.drawPath(path, mouth);
   }
 
   void _drawDecorations(Canvas canvas, double cx, double cy, double r) {
     if (scenario == CharacterScenario.testFailed) {
-      _drawSweatDrop(
-          canvas, cx + r * 0.64, cy - r * 0.08, r * 0.135);
+      _drawSweatDrop(canvas, cx + r * 0.64, cy - r * 0.08, r * 0.135);
     } else {
       _drawSparkle(canvas, cx + r * 1.20, cy - r * 0.76, r * 0.155);
       _drawSparkle(canvas, cx - r * 1.15, cy - r * 0.55, r * 0.115);
@@ -792,79 +837,17 @@ class _MascotPainter extends CustomPainter {
   }
 
   void _drawHat(Canvas canvas, double cx, double cy, double r) {
-    if (scenario == CharacterScenario.lessonCompleted) {
-      _drawGraduationCap(canvas, cx, cy - r * 0.97, r);
-    } else if (scenario == CharacterScenario.testPassed) {
-      _drawCrown(canvas, cx, cy - r * 0.96, r);
-    }
-  }
-
-  void _drawGraduationCap(
-      Canvas canvas, double cx, double top, double r) {
-    canvas.drawOval(
+    _paintTaqiya(
+      canvas,
       Rect.fromCenter(
-          center: Offset(cx, top),
-          width: r * 1.62,
-          height: r * 0.33),
-      Paint()..color = const Color(0xFF37474F),
-    );
-    canvas.drawRect(
-      Rect.fromCenter(
-          center: Offset(cx, top - r * 0.23),
-          width: r * 1.42,
-          height: r * 0.31),
-      Paint()..color = const Color(0xFF263238),
-    );
-    final Path tassel = Path()
-      ..moveTo(cx + r * 0.56, top - r * 0.07)
-      ..lineTo(cx + r * 0.74, top + r * 0.36)
-      ..lineTo(cx + r * 0.63, top + r * 0.54);
-    canvas.drawPath(
-        tassel,
-        Paint()
-          ..color = Colors.amber
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = r * 0.07
-          ..strokeCap = StrokeCap.round);
-    canvas.drawCircle(
-      Offset(cx + r * 0.63, top + r * 0.58),
-      r * 0.09,
-      Paint()..color = Colors.amber,
+        center: Offset(cx, cy - r * 1.05),
+        width: r * 1.55,
+        height: r * 0.8,
+      ),
     );
   }
 
-  void _drawCrown(Canvas canvas, double cx, double top, double r) {
-    final Path crown = Path();
-    final double w = r * 0.66;
-    final double h = r * 0.44;
-    crown
-      ..moveTo(cx - w, top + h * 0.2)
-      ..lineTo(cx - w, top - h * 0.28)
-      ..lineTo(cx - w * 0.5, top)
-      ..lineTo(cx, top - h)
-      ..lineTo(cx + w * 0.5, top)
-      ..lineTo(cx + w, top - h * 0.28)
-      ..lineTo(cx + w, top + h * 0.2)
-      ..close();
-    canvas.drawPath(
-      crown,
-      Paint()
-        ..shader = LinearGradient(
-          colors: <Color>[const Color(0xFFFFD700), const Color(0xFFFFA000)],
-        ).createShader(Rect.fromCenter(
-            center: Offset(cx, top), width: w * 2, height: h * 1.5)),
-    );
-    for (final double pos in <double>[-0.45, 0.0, 0.45]) {
-      canvas.drawCircle(
-        Offset(cx + pos * w * 1.38, top + h * 0.07),
-        r * 0.07,
-        Paint()..color = Colors.white.withValues(alpha: 0.85),
-      );
-    }
-  }
-
-  void _drawSparkle(
-      Canvas canvas, double x, double y, double size) {
+  void _drawSparkle(Canvas canvas, double x, double y, double size) {
     final Path path = Path();
     for (int i = 0; i < 4; i++) {
       final double a = (_pi / 4) * i * 2;
@@ -874,26 +857,132 @@ class _MascotPainter extends CustomPainter {
       } else {
         path.lineTo(x + cos(a) * size, y + sin(a) * size);
       }
-      path.lineTo(
-          x + cos(ai) * (size * 0.35), y + sin(ai) * (size * 0.35));
+      path.lineTo(x + cos(ai) * (size * 0.35), y + sin(ai) * (size * 0.35));
     }
     path.close();
     canvas.drawPath(path, Paint()..color = Colors.white.withValues(alpha: 0.9));
   }
 
-  void _drawSweatDrop(
-      Canvas canvas, double x, double y, double size) {
+  void _drawSweatDrop(Canvas canvas, double x, double y, double size) {
     final Path path = Path()
       ..moveTo(x, y - size * 2)
       ..quadraticBezierTo(x + size * 1.1, y, x, y + size * 0.6)
       ..quadraticBezierTo(x - size * 1.1, y, x, y - size * 2);
     canvas.drawPath(
-        path,
-        Paint()
-          ..color = Colors.lightBlueAccent.withValues(alpha: 0.82));
+      path,
+      Paint()..color = Colors.lightBlueAccent.withValues(alpha: 0.82),
+    );
   }
 
   @override
   bool shouldRepaint(_MascotPainter old) =>
-      old.primary != primary || old.scenario != scenario;
+      old.primary != primary ||
+      old.secondary != secondary ||
+      old.scenario != scenario;
+}
+
+class _Taqiya extends StatelessWidget {
+  const _Taqiya({required this.width, required this.height});
+
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: CustomPaint(painter: const _TaqiyaPainter()),
+    );
+  }
+}
+
+class _TaqiyaPainter extends CustomPainter {
+  const _TaqiyaPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _paintTaqiya(canvas, Offset.zero & size);
+  }
+
+  @override
+  bool shouldRepaint(_TaqiyaPainter oldDelegate) => false;
+}
+
+void _paintTaqiya(Canvas canvas, Rect rect) {
+  final double w = rect.width;
+  final double h = rect.height;
+  final double left = rect.left;
+  final double top = rect.top;
+  final double cx = rect.center.dx;
+
+  final Rect brimRect = Rect.fromLTWH(
+    left + w * 0.05,
+    top + h * 0.48,
+    w * 0.9,
+    h * 0.31,
+  );
+  final Rect domeRect = Rect.fromLTWH(
+    left + w * 0.12,
+    top + h * 0.06,
+    w * 0.76,
+    h * 0.68,
+  );
+
+  final Path dome = Path()
+    ..moveTo(domeRect.left, domeRect.bottom)
+    ..quadraticBezierTo(
+      cx,
+      domeRect.top - h * 0.05,
+      domeRect.right,
+      domeRect.bottom,
+    )
+    ..close();
+
+  canvas.drawShadow(dome, Colors.black.withValues(alpha: 0.30), 5, true);
+  canvas.drawPath(
+    dome,
+    Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: <Color>[Color(0xFF234C51), Color(0xFF142F35)],
+      ).createShader(domeRect),
+  );
+  canvas.drawOval(
+    brimRect,
+    Paint()
+      ..shader = const LinearGradient(
+        colors: <Color>[Color(0xFFE7C568), Color(0xFFB8872E)],
+      ).createShader(brimRect),
+  );
+
+  final Paint stitch = Paint()
+    ..color = const Color(0xFFFFE8A6)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = max(1.1, w * 0.025)
+    ..strokeCap = StrokeCap.round;
+
+  final double patternY = top + h * 0.56;
+  for (int i = 0; i < 4; i++) {
+    final double px = left + w * (0.25 + i * 0.16);
+    final Path motif = Path()
+      ..moveTo(px - w * 0.045, patternY)
+      ..quadraticBezierTo(px, patternY - h * 0.12, px + w * 0.045, patternY)
+      ..quadraticBezierTo(px, patternY + h * 0.10, px - w * 0.045, patternY);
+    canvas.drawPath(motif, stitch);
+  }
+
+  final Paint topLine = Paint()
+    ..color = const Color(0xFFFFE8A6).withValues(alpha: 0.75)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = max(1.0, w * 0.018)
+    ..strokeCap = StrokeCap.round;
+  canvas.drawArc(
+    Rect.fromLTWH(left + w * 0.28, top + h * 0.22, w * 0.44, h * 0.28),
+    pi,
+    pi,
+    false,
+    topLine,
+  );
 }
