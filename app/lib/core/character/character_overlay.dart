@@ -14,7 +14,7 @@ void showCharacterOverlay(
   BuildContext context, {
   required CharacterScenario scenario,
   String? imagePath,
-  Duration autoDismissDuration = const Duration(seconds: 5),
+  Duration? autoDismissDuration,
 }) {
   final OverlayState? overlayState = Overlay.maybeOf(context);
   if (overlayState == null) return;
@@ -177,7 +177,7 @@ class _CharacterOverlay extends StatefulWidget {
 
   final CharacterScenario scenario;
   final String? imagePath;
-  final Duration autoDismissDuration;
+  final Duration? autoDismissDuration;
   final VoidCallback onDismiss;
 
   @override
@@ -236,7 +236,10 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
     _bounceAnim = CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut);
 
     _enterCtrl.forward();
-    Future.delayed(widget.autoDismissDuration, _dismiss);
+    final Duration? autoDismissDuration = widget.autoDismissDuration;
+    if (autoDismissDuration != null) {
+      Future.delayed(autoDismissDuration, _dismiss);
+    }
   }
 
   Future<void> _dismiss() async {
@@ -359,6 +362,7 @@ class _SparkleRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 12 + (i % 3) * 5.0,
             color: color.withValues(alpha: 0.55 + (i % 2) * 0.35),
+            decoration: TextDecoration.none,
           ),
         );
       }),
@@ -459,6 +463,7 @@ class _CharacterPanel extends StatelessWidget {
                     context,
                   ).colorScheme.onSurface.withValues(alpha: 0.28),
                   letterSpacing: 0.4,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ),
@@ -516,6 +521,7 @@ class _MessageContent extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: theme.primary,
               letterSpacing: 0,
+              decoration: TextDecoration.none,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -529,6 +535,7 @@ class _MessageContent extends StatelessWidget {
             fontWeight: FontWeight.w800,
             height: 1.1,
             letterSpacing: 0,
+            decoration: TextDecoration.none,
           ),
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
@@ -542,6 +549,7 @@ class _MessageContent extends StatelessWidget {
             color: Theme.of(
               context,
             ).colorScheme.onSurface.withValues(alpha: 0.55),
+            decoration: TextDecoration.none,
           ),
           maxLines: 4,
           overflow: TextOverflow.ellipsis,
@@ -859,7 +867,7 @@ class _MascotPainter extends CustomPainter {
     _paintTaqiya(
       canvas,
       Rect.fromCenter(
-        center: Offset(cx, cy - r * 1.05),
+        center: Offset(cx, cy - r * 0.84),
         width: r * 1.55,
         height: r * 0.8,
       ),
