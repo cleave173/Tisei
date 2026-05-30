@@ -123,7 +123,7 @@ def _topic_depth_clause(topic: str | None) -> str:
 
 
 def _request_count(count: int) -> int:
-    return min(30, max(count * 3, count + 10))
+    return min(16, max(count + 4, int(count * 1.5)))
 
 
 def _dedupe_items(
@@ -443,7 +443,7 @@ async def gen_hangman(
     )
     seen = _seen_terms(memory_key)
     prompt = (
-        f"Generate 12 candidate {language_code} words {level_clause} for a hangman game. "
+        f"Generate 6 candidate {language_code} words {level_clause} for a hangman game. "
         f"{_topic_clause(topic)} {_exclude_clause(seen)}"
         "Each word must be a single word (no spaces), 5-12 letters, lowercase. "
         "Prefer distinctive theme-native terms over obvious generic words. "

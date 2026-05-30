@@ -25,6 +25,11 @@ router = APIRouter()
 
 def _to_http(exc: Exception) -> HTTPException:
     if isinstance(exc, GeminiError):
+        if "HTTP 429" in str(exc):
+            return HTTPException(
+                status_code=429,
+                detail="Лимит Gemini исчерпан. Попробуйте позже или проверьте квоту API key.",
+            )
         return HTTPException(status_code=502, detail=f"AI generator unavailable: {exc}")
     if isinstance(exc, ValueError):
         return HTTPException(status_code=400, detail=str(exc))
