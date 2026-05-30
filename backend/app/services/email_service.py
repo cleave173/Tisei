@@ -3,6 +3,7 @@
 Supports two backends controlled by the EMAIL_BACKEND env variable:
   - ``console``  (default) – prints the email to stdout; zero external deps.
   - ``smtp``     – sends via SMTP using aiosmtplib.
+  - ``resend``   – sends via Resend HTTP API; avoids blocked SMTP ports.
 
 Set credentials in .env:
     EMAIL_BACKEND=smtp
@@ -12,6 +13,11 @@ Set credentials in .env:
     SMTP_PASSWORD=app-specific-password
     SMTP_FROM=noreply@tisei.app
     SMTP_TLS=true          # use STARTTLS (port 587); set false for port 465 SSL
+
+    # Or:
+    EMAIL_BACKEND=resend
+    RESEND_API_KEY=re_...
+    SMTP_FROM=Tisei <noreply@your-verified-domain.com>
 """
 from __future__ import annotations
 
@@ -43,6 +49,8 @@ async def send_reset_code(to_email: str, code: str) -> None:
 
     if settings.email_backend == "smtp":
         await _send_smtp(to_email, subject, html_body, text_body)
+    elif settings.email_backend == "resend":
+        await _send_resend(to_email, subject, html_body, text_body)
     else:
         _console(to_email, subject, code)
 
@@ -67,11 +75,40 @@ async def _send_smtp(to: str, subject: str, html: str, text: str) -> None:
             username=settings.smtp_user,
             password=settings.smtp_password,
             start_tls=settings.smtp_tls,
+            timeout=settings.smtp_timeout_seconds,
         )
         log.info("Reset code email sent to %s", to)
     except Exception as exc:
         log.error("Failed to send email to %s: %s", to, exc)
         raise
+
+
+async def _send_resend(to: str, subject: str, html: str, text: str) -> None:
+    import httpx
+
+    if not settings.resend_api_key:
+        raise RuntimeError("RESEND_API_KEY is required for EMAIL_BACKEND=resend")
+
+    payload = {
+        "from": settings.smtp_from,
+        "to": [to],
+        "subject": subject,
+        "html": html,
+        "text": text,
+    }
+    async with httpx.AsyncClient(timeout=settings.smtp_timeout_seconds) as client:
+        response = await client.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {settings.resend_api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+        )
+    if response.status_code >= 400:
+        log.error("Resend email failed for %s: %s", to, response.text)
+        response.raise_for_status()
+    log.info("Reset code email sent to %s via Resend", to)
 
 
 def _console(to: str, subject: str, code: str) -> None:

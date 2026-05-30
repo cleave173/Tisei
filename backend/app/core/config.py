@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "noreply@tisei.app"
     smtp_tls: bool = True  # STARTTLS on port 587
+    smtp_timeout_seconds: float = 10.0
+
+    # Optional HTTP email backend that avoids blocked SMTP ports on PaaS hosts.
+    resend_api_key: str | None = None
 
     # Google
     google_client_id: str | None = None

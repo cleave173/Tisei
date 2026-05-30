@@ -9,7 +9,9 @@ import '../../../../core/utils/app_snack_bar.dart';
 final RegExp _fpEmailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
 bool _isStrongPw(String p) =>
-    p.length >= 8 && p.contains(RegExp(r'[a-zA-Z]')) && p.contains(RegExp(r'\d'));
+    p.length >= 8 &&
+    p.contains(RegExp(r'[a-zA-Z]')) &&
+    p.contains(RegExp(r'\d'));
 
 enum _Step { email, reset, done }
 
@@ -44,19 +46,34 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   Future<void> _sendCode() async {
     final String email = _email.text.trim();
-    if (email.isEmpty) { AppSnackBar.showWarning(context, 'auth.fields_required'.tr()); return; }
-    if (!_fpEmailRe.hasMatch(email)) { AppSnackBar.showWarning(context, 'auth.email_invalid'.tr()); return; }
+    if (email.isEmpty) {
+      AppSnackBar.showWarning(context, 'auth.fields_required'.tr());
+      return;
+    }
+    if (!_fpEmailRe.hasMatch(email)) {
+      AppSnackBar.showWarning(context, 'auth.email_invalid'.tr());
+      return;
+    }
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      await ref.read(apiClientProvider).post(
-        '/auth/forgot-password',
-        body: <String, String>{'email': email},
-      );
-    } catch (_) {
-      // Always advance — don't reveal whether email exists
-    } finally {
-      if (mounted) setState(() { _busy = false; _step = _Step.reset; });
+      await ref
+          .read(apiClientProvider)
+          .post(
+            '/auth/forgot-password',
+            body: <String, String>{'email': email},
+          );
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _step = _Step.reset;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, e);
+        setState(() => _busy = false);
+      }
     }
   }
 
@@ -64,23 +81,42 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   Future<void> _resetPassword() async {
     final String code = _code.text.trim();
-    if (code.length != 6) { AppSnackBar.showWarning(context, 'auth.code_invalid'.tr()); return; }
-    if (!_isStrongPw(_password.text)) { AppSnackBar.showWarning(context, 'auth.password_weak'.tr()); return; }
-    if (_password.text != _confirm.text) { AppSnackBar.showWarning(context, 'auth.passwords_mismatch'.tr()); return; }
+    if (code.length != 6) {
+      AppSnackBar.showWarning(context, 'auth.code_invalid'.tr());
+      return;
+    }
+    if (!_isStrongPw(_password.text)) {
+      AppSnackBar.showWarning(context, 'auth.password_weak'.tr());
+      return;
+    }
+    if (_password.text != _confirm.text) {
+      AppSnackBar.showWarning(context, 'auth.passwords_mismatch'.tr());
+      return;
+    }
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      await ref.read(apiClientProvider).post(
-        '/auth/reset-password',
-        body: <String, dynamic>{
-          'email': _email.text.trim(),
-          'code': code,
-          'new_password': _password.text,
-        },
-      );
-      if (mounted) setState(() { _busy = false; _step = _Step.done; });
+      await ref
+          .read(apiClientProvider)
+          .post(
+            '/auth/reset-password',
+            body: <String, dynamic>{
+              'email': _email.text.trim(),
+              'code': code,
+              'new_password': _password.text,
+            },
+          );
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _step = _Step.done;
+        });
+      }
     } catch (e) {
-      if (mounted) { AppSnackBar.showError(context, e); setState(() => _busy = false); }
+      if (mounted) {
+        AppSnackBar.showError(context, e);
+        setState(() => _busy = false);
+      }
     }
   }
 
@@ -93,19 +129,23 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: switch (_step) {
-          _Step.email => _EmailStep(email: _email, busy: _busy, onSubmit: _sendCode),
+          _Step.email => _EmailStep(
+            email: _email,
+            busy: _busy,
+            onSubmit: _sendCode,
+          ),
           _Step.reset => _ResetStep(
-              email: _email.text.trim(),
-              code: _code,
-              password: _password,
-              confirm: _confirm,
-              codeFocus: _codeFocus,
-              obscure: _obscure,
-              busy: _busy,
-              onToggleObscure: () => setState(() => _obscure = !_obscure),
-              onResend: () => setState(() => _step = _Step.email),
-              onSubmit: _resetPassword,
-            ),
+            email: _email.text.trim(),
+            code: _code,
+            password: _password,
+            confirm: _confirm,
+            codeFocus: _codeFocus,
+            obscure: _obscure,
+            busy: _busy,
+            onToggleObscure: () => setState(() => _obscure = !_obscure),
+            onResend: () => setState(() => _step = _Step.email),
+            onSubmit: _resetPassword,
+          ),
           _Step.done => _DoneStep(onBack: () => Navigator.of(context).pop()),
         },
       ),
@@ -116,7 +156,11 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 // ── Step widgets ─────────────────────────────────────────────────────────────
 
 class _EmailStep extends StatelessWidget {
-  const _EmailStep({required this.email, required this.busy, required this.onSubmit});
+  const _EmailStep({
+    required this.email,
+    required this.busy,
+    required this.onSubmit,
+  });
   final TextEditingController email;
   final bool busy;
   final VoidCallback onSubmit;
@@ -127,15 +171,25 @@ class _EmailStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SizedBox(height: 16),
-        Icon(Icons.lock_reset_rounded, size: 60, color: Theme.of(context).colorScheme.primary),
+        Icon(
+          Icons.lock_reset_rounded,
+          size: 60,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(height: 16),
-        Text('auth.forgot_password_title'.tr(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        Text(
+          'auth.forgot_password_title'.tr(),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: 8),
-        Text('auth.forgot_password_hint'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        Text(
+          'auth.forgot_password_hint'.tr(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
         const SizedBox(height: 28),
         TextField(
           controller: email,
@@ -152,8 +206,13 @@ class _EmailStep extends StatelessWidget {
         FilledButton(
           onPressed: busy ? null : onSubmit,
           child: busy
-              ? const SizedBox.square(dimension: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
               : Text('auth.send_reset_link'.tr()),
         ),
       ],
@@ -163,10 +222,16 @@ class _EmailStep extends StatelessWidget {
 
 class _ResetStep extends StatelessWidget {
   const _ResetStep({
-    required this.email, required this.code, required this.password,
-    required this.confirm, required this.codeFocus, required this.obscure,
-    required this.busy, required this.onToggleObscure,
-    required this.onResend, required this.onSubmit,
+    required this.email,
+    required this.code,
+    required this.password,
+    required this.confirm,
+    required this.codeFocus,
+    required this.obscure,
+    required this.busy,
+    required this.onToggleObscure,
+    required this.onResend,
+    required this.onSubmit,
   });
   final String email;
   final TextEditingController code, password, confirm;
@@ -183,13 +248,17 @@ class _ResetStep extends StatelessWidget {
         const SizedBox(height: 8),
         Icon(Icons.mark_email_read_rounded, size: 56, color: cs.primary),
         const SizedBox(height: 12),
-        Text('auth.reset_code_sent'.tr(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        Text(
+          'auth.reset_code_sent'.tr(),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: 6),
-        Text('auth.reset_code_sent_hint'.tr(args: <String>[email]),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+        Text(
+          'auth.reset_code_sent_hint'.tr(args: <String>[email]),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+        ),
         const SizedBox(height: 24),
         TextField(
           controller: code,
@@ -198,8 +267,14 @@ class _ResetStep extends StatelessWidget {
           textAlign: TextAlign.center,
           maxLength: 6,
           enabled: !busy,
-          inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: 10),
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.digitsOnly,
+          ],
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 10,
+          ),
           decoration: InputDecoration(
             labelText: 'auth.reset_code'.tr(),
             counterText: '',
@@ -214,7 +289,11 @@ class _ResetStep extends StatelessWidget {
             labelText: 'auth.password'.tr(),
             prefixIcon: const Icon(Icons.lock_outlined),
             suffixIcon: IconButton(
-              icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+              icon: Icon(
+                obscure
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+              ),
               onPressed: onToggleObscure,
             ),
             helperText: 'auth.password_requirements'.tr(),
@@ -236,8 +315,13 @@ class _ResetStep extends StatelessWidget {
         FilledButton(
           onPressed: busy ? null : onSubmit,
           child: busy
-              ? const SizedBox.square(dimension: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
               : Text('auth.set_new_password'.tr()),
         ),
         const SizedBox(height: 8),
@@ -261,21 +345,27 @@ class _DoneStep extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const SizedBox(height: 48),
-        Icon(Icons.check_circle_rounded, size: 72,
-            color: Theme.of(context).colorScheme.primary),
-        const SizedBox(height: 20),
-        Text('auth.password_reset_success'.tr(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        Text('auth.password_reset_success_hint'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-        const SizedBox(height: 32),
-        FilledButton(
-          onPressed: onBack,
-          child: Text('auth.back_to_login'.tr()),
+        Icon(
+          Icons.check_circle_rounded,
+          size: 72,
+          color: Theme.of(context).colorScheme.primary,
         ),
+        const SizedBox(height: 20),
+        Text(
+          'auth.password_reset_success'.tr(),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'auth.password_reset_success_hint'.tr(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 32),
+        FilledButton(onPressed: onBack, child: Text('auth.back_to_login'.tr())),
       ],
     );
   }
