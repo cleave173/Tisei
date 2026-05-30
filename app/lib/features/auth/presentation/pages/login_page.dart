@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_snack_bar.dart';
@@ -45,7 +44,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       emailErr = 'auth.email_invalid'.tr();
     }
     if (pass.isEmpty) passErr = 'auth.fields_required'.tr();
-    setState(() { _emailError = emailErr; _passError = passErr; });
+    setState(() {
+      _emailError = emailErr;
+      _passError = passErr;
+    });
     return emailErr == null && passErr == null;
   }
 
@@ -54,33 +56,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!_validate()) return;
     setState(() => _busy = true);
     try {
-      await ref.read(authControllerProvider.notifier).login(
-            _email.text.trim(),
-            _password.text,
-          );
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(_email.text.trim(), _password.text);
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         context.go(Routes.home);
       }
-    } catch (e) {
-      if (mounted) AppSnackBar.showError(context, e);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _google() async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      final GoogleSignIn google = GoogleSignIn(scopes: const <String>['email']);
-      final GoogleSignInAccount? acc = await google.signIn();
-      if (acc == null) return;
-      final GoogleSignInAuthentication tokens = await acc.authentication;
-      final String? idToken = tokens.idToken;
-      if (idToken == null) throw Exception('No id_token from Google');
-      await ref.read(authControllerProvider.notifier).loginWithGoogle(idToken);
-      if (mounted) context.go(Routes.home);
     } catch (e) {
       if (mounted) AppSnackBar.showError(context, e);
     } finally {
@@ -103,7 +85,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               enabled: !_busy,
-              onChanged: (_) { if (_emailError != null) setState(() => _emailError = null); },
+              onChanged: (_) {
+                if (_emailError != null) setState(() => _emailError = null);
+              },
               decoration: InputDecoration(
                 labelText: 'auth.email'.tr(),
                 prefixIcon: const Icon(Icons.email_outlined),
@@ -118,13 +102,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               obscureText: _obscure,
               textInputAction: TextInputAction.done,
               enabled: !_busy,
-              onChanged: (_) { if (_passError != null) setState(() => _passError = null); },
+              onChanged: (_) {
+                if (_passError != null) setState(() => _passError = null);
+              },
               decoration: InputDecoration(
                 labelText: 'auth.password'.tr(),
                 prefixIcon: const Icon(Icons.lock_outlined),
                 errorText: _passError,
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
@@ -133,7 +123,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: _busy ? null : () => context.push(Routes.forgotPassword),
+                onPressed: _busy
+                    ? null
+                    : () => context.push(Routes.forgotPassword),
                 child: Text('auth.forgot_password'.tr()),
               ),
             ),
@@ -143,15 +135,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: _busy
                   ? const SizedBox.square(
                       dimension: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text('auth.login'.tr()),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _busy ? null : _google,
-              icon: const Icon(Icons.g_mobiledata, size: 28),
-              label: Text('auth.login_with_google'.tr()),
             ),
           ],
         ),
