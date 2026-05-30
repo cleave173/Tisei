@@ -107,7 +107,9 @@ class _ListeningStageState extends State<ListeningStage> {
       return _StageDoneView(
         icon: Icons.hearing_rounded,
         title: 'listening.done_title'.tr(),
-        message: 'listening.done_msg'.tr(args: <String>['${widget.words.length}']),
+        message: 'listening.done_msg'.tr(
+          args: <String>['${widget.words.length}'],
+        ),
         onContinue: () => Navigator.of(context).maybePop(),
       );
     }
@@ -120,14 +122,18 @@ class _ListeningStageState extends State<ListeningStage> {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           child: Row(
             children: <Widget>[
-              Text('${_index + 1} / ${widget.words.length}',
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                '${_index + 1} / ${widget.words.length}',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               const Spacer(),
-              Text(_current.cefrBadge,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.primary,
-                  )),
+              Text(
+                _current.cefrBadge,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
             ],
           ),
         ),
@@ -164,8 +170,11 @@ class _ListeningStageState extends State<ListeningStage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (_feedback != null) _FeedbackBanner(kind: _feedback!, lemma: _current.lemma),
-                if (_attempts >= 2 && !_revealed && _feedback == 'wrong') ...<Widget>[
+                if (_feedback != null)
+                  _FeedbackBanner(kind: _feedback!, lemma: _current.lemma),
+                if (_attempts >= 2 &&
+                    !_revealed &&
+                    _feedback == 'wrong') ...<Widget>[
                   const SizedBox(height: 8),
                   TextButton.icon(
                     onPressed: _reveal,
@@ -191,19 +200,37 @@ class _ListeningStageState extends State<ListeningStage> {
             child: Row(
               children: <Widget>[
                 Expanded(
+                  flex: 3,
                   child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                    ),
                     onPressed: _advance,
                     icon: const Icon(Icons.skip_next_rounded),
-                    label: Text('common.skip'.tr()),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'common.skip'.tr(),
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  flex: 2,
+                  flex: 5,
                   child: FilledButton.icon(
                     onPressed: _check,
                     icon: const Icon(Icons.check_rounded),
-                    label: Text('common.check'.tr()),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'common.check'.tr(),
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -238,13 +265,19 @@ class _BigPlayButton extends StatelessWidget {
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.4),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: const Icon(Icons.volume_up_rounded, color: Colors.white, size: 72),
+        child: const Icon(
+          Icons.volume_up_rounded,
+          color: Colors.white,
+          size: 72,
+        ),
       ),
     );
   }
@@ -268,7 +301,10 @@ class _FeedbackBanner extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Icon(ok ? Icons.check_circle_rounded : Icons.cancel_rounded, color: color),
+          Icon(
+            ok ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            color: color,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -306,13 +342,17 @@ class _StageDoneView extends StatelessWidget {
           children: <Widget>[
             Icon(icon, size: 96, color: AppTheme.successGreen),
             const SizedBox(height: 24),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 8),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.black54)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.black54),
+            ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: onContinue,
