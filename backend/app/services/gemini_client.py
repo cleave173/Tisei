@@ -40,11 +40,6 @@ async def generate_json(
     if not settings.gemini_api_key:
         raise GeminiError("GEMINI_API_KEY is not configured on the server")
 
-    url = (
-        f"{_API_BASE}/{settings.gemini_model}:generateContent"
-        f"?key={settings.gemini_api_key}"
-    )
-
     contents: list[dict[str, Any]] = []
     if system:
         # Gemini doesn't have a system role; prepend system instructions
@@ -64,16 +59,42 @@ async def generate_json(
         },
     }
 
-    try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
-            r = await client.post(url, json=body)
-            r.raise_for_status()
-            data = r.json()
-    except httpx.HTTPStatusError as exc:
-        logger.warning("Gemini HTTP %s: %s", exc.response.status_code, exc.response.text[:500])
-        raise GeminiError(f"Gemini HTTP {exc.response.status_code}") from exc
-    except httpx.HTTPError as exc:
-        raise GeminiError(f"Gemini request failed: {exc}") from exc
+    last_status_error: httpx.HTTPStatusError | None = None
+    last_request_error: httpx.HTTPError | None = None
+    data: dict[str, Any]
+
+    async with httpx.AsyncClient(timeout=timeout_s) as client:
+        for model_name in settings.gemini_model_names:
+            url = f"{_API_BASE}/{model_name}:generateContent?key={settings.gemini_api_key}"
+            try:
+                r = await client.post(url, json=body)
+                r.raise_for_status()
+                data = r.json()
+                logger.info("Gemini generated content with model %s", model_name)
+                break
+            except httpx.HTTPStatusError as exc:
+                last_status_error = exc
+                logger.warning(
+                    "Gemini model %s HTTP %s: %s",
+                    model_name,
+                    exc.response.status_code,
+                    exc.response.text[:500],
+                )
+                if exc.response.status_code == 429:
+                    continue
+                raise GeminiError(f"Gemini HTTP {exc.response.status_code}") from exc
+            except httpx.HTTPError as exc:
+                last_request_error = exc
+                logger.warning("Gemini model %s request failed: %s", model_name, exc)
+                continue
+        else:
+            if last_status_error is not None:
+                raise GeminiError(
+                    f"Gemini HTTP {last_status_error.response.status_code}"
+                ) from last_status_error
+            if last_request_error is not None:
+                raise GeminiError(f"Gemini request failed: {last_request_error}") from last_request_error
+            raise GeminiError("No Gemini models configured")
 
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]

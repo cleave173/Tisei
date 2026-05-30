@@ -46,6 +46,13 @@ class Settings(BaseSettings):
     # Google Gemini (used for AI-powered game content generation)
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-2.0-flash"
+    gemini_models: str | None = None
+
+    @property
+    def gemini_model_names(self) -> list[str]:
+        raw = self.gemini_models or self.gemini_model
+        names = [name.strip() for name in raw.split(",") if name.strip()]
+        return names or [self.gemini_model]
 
     @property
     def database_url(self) -> str:
