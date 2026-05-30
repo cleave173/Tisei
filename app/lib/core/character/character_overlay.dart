@@ -625,6 +625,11 @@ class _CustomImageChar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final File imageFile = File(imagePath);
+    if (!imageFile.existsSync()) {
+      return _DefaultMascot(scenario: scenario, theme: theme);
+    }
+
     return SizedBox(
       width: 130,
       height: 232,
@@ -633,14 +638,14 @@ class _CustomImageChar extends StatelessWidget {
         children: <Widget>[
           Positioned.fill(
             child: Image.file(
-              File(imagePath),
+              imageFile,
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high,
               errorBuilder: (context, error, stackTrace) =>
                   _DefaultMascot(scenario: scenario, theme: theme),
             ),
           ),
-          const Positioned(top: 2, child: _Taqiya(width: 66, height: 39)),
+          const Positioned(top: 72, child: _Taqiya(width: 66, height: 39)),
         ],
       ),
     );
