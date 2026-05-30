@@ -310,7 +310,7 @@ class _CharacterOverlayState extends State<_CharacterOverlay>
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: 240,
+                  bottom: 286,
                   child: FadeTransition(
                     opacity: _fadeAnim,
                     child: _SparkleRow(color: theme.accent),
@@ -396,8 +396,11 @@ class _CharacterPanel extends StatelessWidget {
           )!
         : Theme.of(context).colorScheme.surface;
 
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final bool compact = screenWidth < 390;
+
     return SizedBox(
-      height: 318,
+      height: compact ? 350 : 364,
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
@@ -406,7 +409,7 @@ class _CharacterPanel extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            top: 62,
+            top: compact ? 72 : 82,
             child: Container(
               decoration: BoxDecoration(
                 color: surface,
@@ -433,8 +436,12 @@ class _CharacterPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.fromLTRB(28, 34, 150, 24),
-              child: _MessageContent(scenario: scenario, theme: theme),
+              padding: EdgeInsets.fromLTRB(24, 28, compact ? 116 : 132, 28),
+              child: _MessageContent(
+                scenario: scenario,
+                theme: theme,
+                compact: compact,
+              ),
             ),
           ),
 
@@ -459,8 +466,8 @@ class _CharacterPanel extends StatelessWidget {
 
           // Character
           Positioned(
-            right: 8,
-            bottom: 6,
+            right: compact ? 4 : 12,
+            bottom: 18,
             child: _BouncingCharacter(
               scenario: scenario,
               imagePath: imagePath,
@@ -480,10 +487,15 @@ class _CharacterPanel extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _MessageContent extends StatelessWidget {
-  const _MessageContent({required this.scenario, required this.theme});
+  const _MessageContent({
+    required this.scenario,
+    required this.theme,
+    required this.compact,
+  });
 
   final CharacterScenario scenario;
   final _ScenarioTheme theme;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -498,34 +510,41 @@ class _MessageContent extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            scenario.nameKey.tr().toUpperCase(),
+            scenario.nameKey.tr(),
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
               color: theme.primary,
-              letterSpacing: 1.2,
+              letterSpacing: 0,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Text(
           scenario.messageKey.tr(),
-          style: const TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w900,
+          style: TextStyle(
+            fontSize: compact ? 21 : 23,
+            fontWeight: FontWeight.w800,
             height: 1.1,
+            letterSpacing: 0,
           ),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 8),
         Text(
           scenario.subMessageKey.tr(),
           style: TextStyle(
-            fontSize: 13,
-            height: 1.5,
+            fontSize: compact ? 12 : 12.5,
+            height: 1.38,
             color: Theme.of(
               context,
             ).colorScheme.onSurface.withValues(alpha: 0.55),
           ),
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -556,7 +575,7 @@ class _BouncingCharacter extends StatelessWidget {
     return AnimatedBuilder(
       animation: Listenable.merge(<Listenable>[bounceAnim, scaleAnim]),
       builder: (BuildContext ctx, Widget? child) {
-        final double floatOffset = (bounceAnim.value - 0.5) * 14.0;
+        final double floatOffset = (bounceAnim.value - 0.5) * 10.0;
         final double tilt = sin(bounceAnim.value * pi * 2) * 0.025;
         return Transform.translate(
           offset: Offset(0, floatOffset),
@@ -600,7 +619,7 @@ class _CustomImageChar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 130,
-      height: 250,
+      height: 232,
       child: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
@@ -613,7 +632,7 @@ class _CustomImageChar extends StatelessWidget {
                   _DefaultMascot(scenario: scenario, theme: theme),
             ),
           ),
-          const Positioned(top: 8, child: _Taqiya(width: 72, height: 42)),
+          const Positioned(top: 2, child: _Taqiya(width: 66, height: 39)),
         ],
       ),
     );
@@ -634,7 +653,7 @@ class _DefaultMascot extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 130,
-      height: 215,
+      height: 202,
       child: CustomPaint(
         painter: _MascotPainter(
           primary: theme.primary,

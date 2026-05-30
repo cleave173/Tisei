@@ -76,7 +76,8 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
   }
 
   void _skip() {
-    // No answer recorded — treated as wrong by the backend
+    // Submit an empty choice so skipped questions are counted as wrong.
+    _answers[_q.wordId] = '';
     _advance();
   }
 
