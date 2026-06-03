@@ -1,6 +1,7 @@
 """Authentication business logic — separated from HTTP layer."""
 from __future__ import annotations
 
+import logging
 import random
 from datetime import datetime, timedelta, timezone
 
@@ -20,6 +21,8 @@ from app.models import AuthProvider, Profile, RefreshToken, User
 from app.models.password_reset import PasswordResetCode
 from app.schemas.auth import GoogleAuthRequest, LoginRequest, RegisterRequest, TokenPair
 from app.services import email_service
+
+log = logging.getLogger(__name__)
 
 
 async def _issue_token_pair(db: AsyncSession, user: User) -> TokenPair:
@@ -151,7 +154,13 @@ async def forgot_password(db: AsyncSession, email: str) -> None:
     db.add(PasswordResetCode(user_id=user.id, code=code, expires_at=expires_at))
     await db.flush()
 
-    await email_service.send_reset_code(user.email, code)
+    try:
+        await email_service.send_reset_code(user.email, code)
+    except Exception:
+        # Password reset must not expose mail-provider failures as a 500 or
+        # reveal whether an email exists. The code is still stored, and Railway
+        # logs will contain the provider error for diagnostics.
+        log.exception("Password reset email delivery failed for user_id=%s", user.id)
 
 
 async def reset_password(db: AsyncSession, email: str, code: str, new_password: str) -> None:
