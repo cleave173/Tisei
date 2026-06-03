@@ -129,6 +129,8 @@ class VocabLessonOut(BaseModel):
 class VocabLessonsListOut(BaseModel):
     topic_id: int
     topic_title: str
+    topic_title_ru: str | None = None
+    topic_title_kk: str | None = None
     topic_level: str
     lesson_size: int
     lessons: list[VocabLessonOut]

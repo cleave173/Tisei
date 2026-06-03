@@ -156,6 +156,8 @@ async def list_vocab_lessons(
     return VocabLessonsListOut(
         topic_id=topic.id,
         topic_title=topic.title,
+        topic_title_ru=topic.title_ru,
+        topic_title_kk=topic.title_kk,
         topic_level=topic.level.value if hasattr(topic.level, "value") else str(topic.level),
         lesson_size=LESSON_SIZE,
         lessons=lessons,

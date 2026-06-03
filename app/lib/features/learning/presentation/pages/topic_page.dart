@@ -18,24 +18,27 @@ class TopicPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final String fallbackTitle =
-        preloaded?.localizedTitle(context.locale.languageCode) ?? 'learning.introduction'.tr();
-    final AsyncValue<VocabLessonsListDto> data =
-        ref.watch(vocabLessonsByTopicProvider(topicId));
+    final String localeCode = context.locale.languageCode;
+    final String? preloadedTitle = preloaded?.localizedTitle(localeCode);
+    final String fallbackTitle = preloadedTitle ?? 'learning.introduction'.tr();
+    final AsyncValue<VocabLessonsListDto> data = ref.watch(
+      vocabLessonsByTopicProvider(topicId),
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(data.maybeWhen(
-          data: (VocabLessonsListDto d) => d.topicTitle,
-          orElse: () => fallbackTitle,
-        )),
+        title: Text(
+          data.maybeWhen(
+            data: (VocabLessonsListDto d) =>
+                preloadedTitle ?? d.localizedTopicTitle(localeCode),
+            orElse: () => fallbackTitle,
+          ),
+        ),
         actions: <Widget>[
           if (preloaded != null)
             Padding(
               padding: const EdgeInsets.only(right: 12),
-              child: Center(
-                child: _LevelBadge(level: preloaded!.level),
-              ),
+              child: Center(child: _LevelBadge(level: preloaded!.level)),
             ),
         ],
       ),
@@ -47,11 +50,13 @@ class TopicPage extends ConsumerWidget {
             return Center(child: Text('learning.no_lessons'.tr()));
           }
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(vocabLessonsByTopicProvider(topicId)),
+            onRefresh: () async =>
+                ref.invalidate(vocabLessonsByTopicProvider(topicId)),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: d.lessons.length,
-              separatorBuilder: (BuildContext ctx, int index) => const SizedBox(height: 12),
+              separatorBuilder: (BuildContext ctx, int index) =>
+                  const SizedBox(height: 12),
               itemBuilder: (BuildContext c, int i) => _LessonTile(
                 topicId: d.topicId,
                 lesson: d.lessons[i],
@@ -98,7 +103,9 @@ class _LessonTile extends StatelessWidget {
             children: <Widget>[
               CircleAvatar(
                 radius: 22,
-                backgroundColor: completed ? AppTheme.successGreen : Theme.of(context).colorScheme.primary,
+                backgroundColor: completed
+                    ? AppTheme.successGreen
+                    : Theme.of(context).colorScheme.primary,
                 child: completed
                     ? const Icon(Icons.check, color: Colors.white)
                     : Text(
@@ -116,24 +123,48 @@ class _LessonTile extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'learning.lesson_n'.tr(args: <String>['$lessonNumber']),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'learning.lesson_subtitle'.tr(args: <String>[
-                        '${lesson.words.length}',
-                        '$done',
-                        '${stages.length}',
-                      ]),
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      'learning.lesson_subtitle'.tr(
+                        args: <String>[
+                          '${lesson.words.length}',
+                          '$done',
+                          '${stages.length}',
+                        ],
+                      ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: <Widget>[
-                        _StageDot(label: 'C', done: p.cardsDone, color: Theme.of(context).colorScheme.primary),
-                        _StageDot(label: 'L', done: p.listeningDone, color: Colors.deepPurple),
-                        _StageDot(label: 'T', done: p.mcDone, color: Colors.orange),
-                        _StageDot(label: 'S', done: p.speakingDone, color: Colors.teal),
+                        _StageDot(
+                          label: 'C',
+                          done: p.cardsDone,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        _StageDot(
+                          label: 'L',
+                          done: p.listeningDone,
+                          color: Colors.deepPurple,
+                        ),
+                        _StageDot(
+                          label: 'T',
+                          done: p.mcDone,
+                          color: Colors.orange,
+                        ),
+                        _StageDot(
+                          label: 'S',
+                          done: p.speakingDone,
+                          color: Colors.teal,
+                        ),
                       ],
                     ),
                   ],
@@ -149,7 +180,11 @@ class _LessonTile extends StatelessWidget {
 }
 
 class _StageDot extends StatelessWidget {
-  const _StageDot({required this.label, required this.done, required this.color});
+  const _StageDot({
+    required this.label,
+    required this.done,
+    required this.color,
+  });
   final String label;
   final bool done;
   final Color color;
