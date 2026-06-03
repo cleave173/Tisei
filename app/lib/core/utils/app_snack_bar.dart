@@ -9,11 +9,14 @@ import '../network/api_exception.dart';
 class AppSnackBar {
   AppSnackBar._();
 
+  static final GlobalKey<ScaffoldMessengerState> rootKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   // ── Public API ────────────────────────────────────────────────────────────
 
   static void showError(BuildContext context, dynamic error) {
     final String raw = _friendly(error);
-    _show(context, message: _localize(raw), type: _Type.error);
+    _show(message: _localize(raw), type: _Type.error);
   }
 
   // Maps known backend English messages → localization keys
@@ -38,13 +41,13 @@ class AppSnackBar {
   }
 
   static void showSuccess(BuildContext context, String message) =>
-      _show(context, message: message, type: _Type.success);
+      _show(message: message, type: _Type.success);
 
   static void showInfo(BuildContext context, String message) =>
-      _show(context, message: message, type: _Type.info);
+      _show(message: message, type: _Type.info);
 
   static void showWarning(BuildContext context, String message) =>
-      _show(context, message: message, type: _Type.warning);
+      _show(message: message, type: _Type.warning);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -69,13 +72,10 @@ class AppSnackBar {
     return e?.toString() ?? 'Unknown error';
   }
 
-  static void _show(
-    BuildContext context, {
+  static void _show({
     required String message,
     required _Type type,
   }) {
-    if (!context.mounted) return;
-
     final (Color bg, IconData icon, Duration dur) = switch (type) {
       _Type.error => (
           const Color(0xFFC62828),
@@ -85,22 +85,22 @@ class AppSnackBar {
       _Type.success => (
           const Color(0xFF2E7D32),
           Icons.check_circle_outline_rounded,
-          const Duration(seconds: 3),
+          const Duration(seconds: 5),
         ),
       _Type.info => (
           const Color(0xFF1565C0),
           Icons.info_outline_rounded,
-          const Duration(seconds: 3),
+          const Duration(seconds: 5),
         ),
       _Type.warning => (
           const Color(0xFFE65100),
           Icons.warning_amber_rounded,
-          const Duration(seconds: 4),
+          const Duration(seconds: 5),
         ),
     };
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
+    rootKey.currentState
+      ?..clearSnackBars()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -129,8 +129,7 @@ class AppSnackBar {
           action: SnackBarAction(
             label: '✕',
             textColor: Colors.white70,
-            onPressed: () =>
-                ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+            onPressed: () => rootKey.currentState?.hideCurrentSnackBar(),
           ),
         ),
       );

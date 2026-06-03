@@ -217,7 +217,18 @@
     "palette_rose": "Раушан",
     "palette_teal": "Жасыл",
     "palette_golden": "Алтын",
-    "palette_indigo": "Индиго"
+    "palette_indigo": "Индиго",
+    "learning_reminders": "Оқу еске салғыштары",
+    "learning_reminders_subtitle": "Tisei таңдаған уақытта сөздер мен сабақтарға қайта оралуды еске салады.",
+    "reminder_time": "Уақыты",
+    "reminder_preview": "Хабарламаны тексеру",
+    "reminder_enabled_message": "Еске салғыш {} уақытына қосылды",
+    "reminder_disabled_message": "Еске салғыш өшірілді",
+    "reminder_time_saved": "Еске салу уақыты: {}",
+    "reminder_preview_sent": "Сынақ хабарламасы жіберілді",
+    "reminder_permission_denied": "Құрылғы баптауларынан хабарламаларға рұқсат беріңіз",
+    "reminder_notification_title": "Аздап оқитын уақыт",
+    "reminder_notification_body": "Бүгінгі 10 минут сөз оқу қарқынды сақтауға көмектеседі."
   },
   "achievements": {
     "title": "Жетістіктер",

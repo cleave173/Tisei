@@ -217,7 +217,18 @@
     "palette_rose": "Rose",
     "palette_teal": "Teal",
     "palette_golden": "Gold",
-    "palette_indigo": "Indigo"
+    "palette_indigo": "Indigo",
+    "learning_reminders": "Study reminders",
+    "learning_reminders_subtitle": "Tisei will gently remind you to return to words and lessons at the time you choose.",
+    "reminder_time": "Time",
+    "reminder_preview": "Test notification",
+    "reminder_enabled_message": "Reminder enabled for {}",
+    "reminder_disabled_message": "Reminder disabled",
+    "reminder_time_saved": "Reminder time: {}",
+    "reminder_preview_sent": "Test notification sent",
+    "reminder_permission_denied": "Allow notifications in your device settings",
+    "reminder_notification_title": "Time for a short study session",
+    "reminder_notification_body": "10 minutes of words today will help you keep the rhythm."
   },
   "achievements": {
     "title": "Achievements",

@@ -15,6 +15,24 @@ class CacheInterceptor extends Interceptor {
   bool _shouldSkip(String path) =>
       _skipPaths.any((String s) => path.contains(s));
 
+  String _cacheKey(RequestOptions options) {
+    final Uri uri = options.uri;
+    if (uri.query.isEmpty) return options.path;
+    return '${options.path}?${uri.query}';
+  }
+
+  Duration _ttlFor(String path) {
+    if (path.startsWith('/languages') ||
+        path.startsWith('/words') ||
+        path.startsWith('/lessons')) {
+      return const Duration(days: 90);
+    }
+    if (path.startsWith('/achievements')) {
+      return const Duration(days: 30);
+    }
+    return const Duration(days: 7);
+  }
+
   @override
   Future<void> onRequest(
     RequestOptions options,
@@ -27,7 +45,7 @@ class CacheInterceptor extends Interceptor {
     final bool online = await checkOnline();
     if (!online) {
       final LocalCache cache = await LocalCache.instance;
-      final dynamic data = await cache.get(options.path);
+      final dynamic data = await cache.getStale(_cacheKey(options));
       if (data != null) {
         return handler.resolve(
           Response<dynamic>(requestOptions: options, data: data, statusCode: 200),
@@ -53,8 +71,34 @@ class CacheInterceptor extends Interceptor {
         response.statusCode == 200 &&
         !_shouldSkip(response.requestOptions.path)) {
       final LocalCache cache = await LocalCache.instance;
-      await cache.put(response.requestOptions.path, response.data);
+      await cache.put(
+        _cacheKey(response.requestOptions),
+        response.data,
+        ttl: _ttlFor(response.requestOptions.path),
+      );
     }
     return handler.next(response);
+  }
+
+  @override
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final RequestOptions options = err.requestOptions;
+    if (options.method == 'GET' && !_shouldSkip(options.path)) {
+      final LocalCache cache = await LocalCache.instance;
+      final dynamic data = await cache.getStale(_cacheKey(options));
+      if (data != null) {
+        return handler.resolve(
+          Response<dynamic>(
+            requestOptions: options,
+            data: data,
+            statusCode: 200,
+          ),
+        );
+      }
+    }
+    return handler.next(err);
   }
 }

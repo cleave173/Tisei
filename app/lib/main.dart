@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/character/character_notifier.dart';
+import 'core/notifications/learning_reminder_notifier.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
+import 'core/utils/app_snack_bar.dart';
 import 'core/utils/auth_event_bus.dart';
 import 'features/auth/presentation/providers/auth_controller.dart';
 
@@ -34,11 +36,12 @@ Future<void> main() async {
       fallbackLocale: const Locale('en'),
       child: ProviderScope(
         overrides: <Override>[
-          themeNotifierProvider.overrideWith(
-            (Ref ref) => ThemeNotifier(prefs),
-          ),
+          themeNotifierProvider.overrideWith((Ref ref) => ThemeNotifier(prefs)),
           characterNotifierProvider.overrideWith(
             (Ref ref) => CharacterNotifier(prefs),
+          ),
+          learningReminderProvider.overrideWith(
+            (Ref ref) => LearningReminderNotifier(prefs),
           ),
         ],
         child: const TiseiApp(),
@@ -79,6 +82,7 @@ class _TiseiAppState extends ConsumerState<TiseiApp> {
     return MaterialApp.router(
       title: 'Tisei',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: AppSnackBar.rootKey,
       theme: AppTheme.light(seed),
       darkTheme: AppTheme.dark(seed),
       themeMode: themeState.themeMode,

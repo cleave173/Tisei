@@ -33,7 +33,11 @@ class LocalCache {
   }
 
   /// Store [data] under [key] for [ttl] duration.
-  Future<void> put(String key, dynamic data, {Duration ttl = const Duration(hours: 48)}) async {
+  Future<void> put(
+    String key,
+    dynamic data, {
+    Duration ttl = const Duration(days: 30),
+  }) async {
     final int exp = DateTime.now().add(ttl).millisecondsSinceEpoch;
     await _db.insert(
       'cache',
@@ -48,6 +52,19 @@ class LocalCache {
       'cache',
       where: 'key = ? AND exp_at > ?',
       whereArgs: <Object>[key, DateTime.now().millisecondsSinceEpoch],
+    );
+    if (rows.isEmpty) return null;
+    return jsonDecode(rows.first['data'] as String);
+  }
+
+  /// Return cached value even if expired. Useful when the network fails and
+  /// showing older learning content is better than an empty screen.
+  Future<dynamic> getStale(String key) async {
+    final List<Map<String, Object?>> rows = await _db.query(
+      'cache',
+      where: 'key = ?',
+      whereArgs: <Object>[key],
+      limit: 1,
     );
     if (rows.isEmpty) return null;
     return jsonDecode(rows.first['data'] as String);

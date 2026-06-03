@@ -217,7 +217,18 @@
     "palette_rose": "Роза",
     "palette_teal": "Бирюза",
     "palette_golden": "Золото",
-    "palette_indigo": "Индиго"
+    "palette_indigo": "Индиго",
+    "learning_reminders": "Напоминания об учёбе",
+    "learning_reminders_subtitle": "Tisei мягко напомнит вернуться к словам и урокам в выбранное время.",
+    "reminder_time": "Время",
+    "reminder_preview": "Проверить уведомление",
+    "reminder_enabled_message": "Напоминание включено на {}",
+    "reminder_disabled_message": "Напоминание выключено",
+    "reminder_time_saved": "Время напоминания: {}",
+    "reminder_preview_sent": "Тестовое уведомление отправлено",
+    "reminder_permission_denied": "Разрешите уведомления в настройках устройства",
+    "reminder_notification_title": "Пора немного поучиться",
+    "reminder_notification_body": "10 минут слов сегодня уже помогут не потерять темп."
   },
   "achievements": {
     "title": "Достижения",
