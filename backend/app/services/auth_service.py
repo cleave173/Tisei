@@ -154,6 +154,9 @@ async def forgot_password(db: AsyncSession, email: str) -> None:
     db.add(PasswordResetCode(user_id=user.id, code=code, expires_at=expires_at))
     await db.flush()
 
+    if settings.log_reset_codes:
+        log.warning("Password reset code for %s: %s", user.email, code)
+
     try:
         await email_service.send_reset_code(user.email, code)
     except Exception:

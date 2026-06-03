@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60  # 1 hour; override in .env
     refresh_token_expire_days: int = 30
     reset_code_expire_minutes: int = 15
+    log_reset_codes: bool = False
 
     # Email
     email_backend: str = "console"  # "smtp" or "console"
