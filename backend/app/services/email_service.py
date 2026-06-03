@@ -4,6 +4,7 @@ Supports two backends controlled by the EMAIL_BACKEND env variable:
   - ``console``  (default) – prints the email to stdout; zero external deps.
   - ``smtp``     – sends via SMTP using aiosmtplib.
   - ``resend``   – sends via Resend HTTP API; avoids blocked SMTP ports.
+  - ``gmail_api`` – sends through Gmail REST API; avoids blocked SMTP ports.
 
 Set credentials in .env:
     EMAIL_BACKEND=smtp
@@ -21,6 +22,7 @@ Set credentials in .env:
 """
 from __future__ import annotations
 
+import base64
 import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -51,6 +53,8 @@ async def send_reset_code(to_email: str, code: str) -> None:
         await _send_smtp(to_email, subject, html_body, text_body)
     elif settings.email_backend == "resend":
         await _send_resend(to_email, subject, html_body, text_body)
+    elif settings.email_backend == "gmail_api":
+        await _send_gmail_api(to_email, subject, html_body, text_body)
     else:
         _console(to_email, subject, code)
 
@@ -109,6 +113,59 @@ async def _send_resend(to: str, subject: str, html: str, text: str) -> None:
         log.error("Resend email failed for %s: %s", to, response.text)
         response.raise_for_status()
     log.info("Reset code email sent to %s via Resend", to)
+
+
+async def _send_gmail_api(to: str, subject: str, html: str, text: str) -> None:
+    import httpx
+
+    missing = [
+        name
+        for name, value in {
+            "GMAIL_CLIENT_ID": settings.gmail_client_id,
+            "GMAIL_CLIENT_SECRET": settings.gmail_client_secret,
+            "GMAIL_REFRESH_TOKEN": settings.gmail_refresh_token,
+        }.items()
+        if not value
+    ]
+    if missing:
+        raise RuntimeError(f"{', '.join(missing)} required for EMAIL_BACKEND=gmail_api")
+
+    async with httpx.AsyncClient(timeout=settings.smtp_timeout_seconds) as client:
+        token_response = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "client_id": settings.gmail_client_id,
+                "client_secret": settings.gmail_client_secret,
+                "refresh_token": settings.gmail_refresh_token,
+                "grant_type": "refresh_token",
+            },
+        )
+        if token_response.status_code >= 400:
+            log.error("Gmail token refresh failed: %s", token_response.text)
+            token_response.raise_for_status()
+
+        access_token = token_response.json()["access_token"]
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = settings.gmail_from or settings.smtp_from or settings.smtp_user
+        msg["To"] = to
+        msg.attach(MIMEText(text, "plain"))
+        msg.attach(MIMEText(html, "html"))
+
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode().rstrip("=")
+        send_response = await client.post(
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            },
+            json={"raw": raw},
+        )
+    if send_response.status_code >= 400:
+        log.error("Gmail API email failed for %s: %s", to, send_response.text)
+        send_response.raise_for_status()
+    log.info("Reset code email sent to %s via Gmail API", to)
 
 
 def _console(to: str, subject: str, code: str) -> None:

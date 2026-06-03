@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     # Optional HTTP email backend that avoids blocked SMTP ports on PaaS hosts.
     resend_api_key: str | None = None
 
+    # Gmail API email backend. Uses HTTPS instead of SMTP, so it works on hosts
+    # where outbound SMTP ports are blocked.
+    gmail_client_id: str | None = None
+    gmail_client_secret: str | None = None
+    gmail_refresh_token: str | None = None
+    gmail_from: str | None = None
+
     # Google
     google_client_id: str | None = None
 
