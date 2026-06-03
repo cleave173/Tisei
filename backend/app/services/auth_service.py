@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import random
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
@@ -23,6 +24,15 @@ from app.schemas.auth import GoogleAuthRequest, LoginRequest, RegisterRequest, T
 from app.services import email_service
 
 log = logging.getLogger(__name__)
+
+
+async def _send_reset_code_safely(email: str, code: str, user_id: int) -> None:
+    try:
+        await email_service.send_reset_code(email, code)
+    except Exception:
+        # Password reset must not expose mail-provider failures as a 500 or
+        # reveal whether an email exists. Railway logs contain provider errors.
+        log.exception("Password reset email delivery failed for user_id=%s", user_id)
 
 
 async def _issue_token_pair(db: AsyncSession, user: User) -> TokenPair:
@@ -157,13 +167,7 @@ async def forgot_password(db: AsyncSession, email: str) -> None:
     if settings.log_reset_codes:
         log.warning("Password reset code for %s: %s", user.email, code)
 
-    try:
-        await email_service.send_reset_code(user.email, code)
-    except Exception:
-        # Password reset must not expose mail-provider failures as a 500 or
-        # reveal whether an email exists. The code is still stored, and Railway
-        # logs will contain the provider error for diagnostics.
-        log.exception("Password reset email delivery failed for user_id=%s", user.id)
+    asyncio.create_task(_send_reset_code_safely(user.email, code, user.id))
 
 
 async def reset_password(db: AsyncSession, email: str, code: str, new_password: str) -> None:
