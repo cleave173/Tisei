@@ -42,7 +42,7 @@ def create_app() -> FastAPI:
 
     app.include_router(api_router, prefix=settings.api_v1_prefix)
 
-    uploads_dir = Path("/code/uploads")
+    uploads_dir = settings.base_dir / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
     app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 

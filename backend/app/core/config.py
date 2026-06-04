@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -65,6 +66,10 @@ class Settings(BaseSettings):
         raw = self.gemini_models or self.gemini_model
         names = [name.strip() for name in raw.split(",") if name.strip()]
         return names or [self.gemini_model]
+
+    @property
+    def base_dir(self) -> Path:
+        return Path(__file__).resolve().parent.parent.parent
 
     @property
     def database_url(self) -> str:
