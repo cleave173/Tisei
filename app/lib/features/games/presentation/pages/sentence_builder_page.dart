@@ -12,8 +12,9 @@ import '../../data/models/game_dtos.dart';
 import '../widgets/game_widgets.dart';
 
 class SentenceBuilderPage extends ConsumerStatefulWidget {
-  const SentenceBuilderPage({super.key, this.topic});
+  const SentenceBuilderPage({super.key, this.topic, this.translationLang});
   final String? topic;
+  final String? translationLang;
 
   @override
   ConsumerState<SentenceBuilderPage> createState() =>
@@ -66,6 +67,7 @@ class _SentenceBuilderPageState extends ConsumerState<SentenceBuilderPage> {
             topic: widget.topic,
             count: 5,
             level: _level,
+            translationLang: widget.translationLang,
           );
       setState(() {
         _data = d;

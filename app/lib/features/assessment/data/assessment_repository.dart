@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../auth/presentation/providers/auth_controller.dart';
 import 'models/assessment_dto.dart';
 
 class AssessmentRepository {
@@ -71,5 +72,8 @@ final Provider<AssessmentRepository> assessmentRepositoryProvider =
 
 final FutureProvider<LevelStatusDto> levelStatusProvider =
     FutureProvider<LevelStatusDto>(
-  (Ref ref) => ref.read(assessmentRepositoryProvider).getStatus(),
+  (Ref ref) {
+    ref.watch(authControllerProvider);
+    return ref.read(assessmentRepositoryProvider).getStatus();
+  },
 );

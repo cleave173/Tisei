@@ -64,6 +64,21 @@ class SettingsPage extends ConsumerWidget {
               );
               if (picked != null && context.mounted) {
                 await context.setLocale(picked);
+                final LearningReminderState reminder = ref.read(
+                  learningReminderProvider,
+                );
+                if (reminder.enabled && context.mounted) {
+                  await ref
+                      .read(learningReminderProvider.notifier)
+                      .setTime(
+                        time: TimeOfDay(
+                          hour: reminder.hour,
+                          minute: reminder.minute,
+                        ),
+                        title: 'settings.reminder_notification_title'.tr(),
+                        body: 'settings.reminder_notification_body'.tr(),
+                      );
+                }
               }
             },
           ),
@@ -106,6 +121,16 @@ class SettingsPage extends ConsumerWidget {
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'character.upload_hint'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.35,
               ),
             ),
           ),

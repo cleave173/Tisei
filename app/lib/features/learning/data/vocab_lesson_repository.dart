@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../auth/presentation/providers/auth_controller.dart';
 import 'models/vocab_lesson_models.dart';
 
 class VocabLessonRepository {
@@ -38,8 +39,10 @@ final Provider<VocabLessonRepository> vocabLessonRepositoryProvider =
 /// List of vocab lessons for a topic.
 final FutureProviderFamily<VocabLessonsListDto, int> vocabLessonsByTopicProvider =
     FutureProvider.family<VocabLessonsListDto, int>(
-  (Ref ref, int topicId) =>
-      ref.read(vocabLessonRepositoryProvider).listByTopic(topicId),
+  (Ref ref, int topicId) {
+    ref.watch(authControllerProvider);
+    return ref.read(vocabLessonRepositoryProvider).listByTopic(topicId);
+  },
 );
 
 /// One vocab lesson (used by the lesson page).
@@ -61,6 +64,8 @@ class VocabLessonKey {
 
 final FutureProviderFamily<VocabLessonDto, VocabLessonKey> vocabLessonProvider =
     FutureProvider.family<VocabLessonDto, VocabLessonKey>(
-  (Ref ref, VocabLessonKey key) =>
-      ref.read(vocabLessonRepositoryProvider).getLesson(key.topicId, key.lessonIndex),
+  (Ref ref, VocabLessonKey key) {
+    ref.watch(authControllerProvider);
+    return ref.read(vocabLessonRepositoryProvider).getLesson(key.topicId, key.lessonIndex);
+  },
 );

@@ -256,10 +256,11 @@ async def gen_word_match(
     language_code: str,
     count: int,
     level_override: str | None,
+    translation_lang: str | None = None,
 ) -> dict[str, Any]:
     profile = await _get_profile(db, user)
     level = _resolve_level(profile, level_override)
-    ui = _ui_lang(profile)
+    ui = translation_lang.lower() if (translation_lang and translation_lang.lower() in ("ru", "kk")) else _ui_lang(profile)
 
     if not topic:
         lang_id = await _resolve_language_id(db, language_code)
@@ -308,10 +309,11 @@ async def gen_word_scramble(
     language_code: str,
     count: int,
     level_override: str | None,
+    translation_lang: str | None = None,
 ) -> dict[str, Any]:
     profile = await _get_profile(db, user)
     level = _resolve_level(profile, level_override)
-    ui = _ui_lang(profile)
+    ui = translation_lang.lower() if (translation_lang and translation_lang.lower() in ("ru", "kk")) else _ui_lang(profile)
 
     if not topic:
         lang_id = await _resolve_language_id(db, language_code)
@@ -365,10 +367,11 @@ async def gen_sentence_builder(
     language_code: str,
     count: int,
     level_override: str | None,
+    translation_lang: str | None = None,
 ) -> dict[str, Any]:
     profile = await _get_profile(db, user)
     level = _resolve_level(profile, level_override)
-    ui = _ui_lang(profile)
+    ui = translation_lang.lower() if (translation_lang and translation_lang.lower() in ("ru", "kk")) else _ui_lang(profile)
 
     if not topic:
         lang_id = await _resolve_language_id(db, language_code)
@@ -415,10 +418,11 @@ async def gen_hangman(
     topic: str | None,
     language_code: str,
     level_override: str | None,
+    translation_lang: str | None = None,
 ) -> dict[str, Any]:
     profile = await _get_profile(db, user)
     level = _resolve_level(profile, level_override)
-    ui = _ui_lang(profile)
+    ui = translation_lang.lower() if (translation_lang and translation_lang.lower() in ("ru", "kk")) else _ui_lang(profile)
 
     if not topic:
         lang_id = await _resolve_language_id(db, language_code)

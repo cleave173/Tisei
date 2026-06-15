@@ -227,13 +227,19 @@ class _PlacementIntroScreen extends StatelessWidget {
               // ── Take test ─────────────────────────────────────────────────
               FilledButton(
                 onPressed: onStart,
-                child: Text('assessment.take_test'.tr()),
+                child: Text(
+                  'assessment.take_test'.tr(),
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 12),
               // ── Skip ──────────────────────────────────────────────────────
               OutlinedButton(
                 onPressed: onSkip,
-                child: Text('assessment.skip_to_beginner'.tr()),
+                child: Text(
+                  'assessment.skip_to_beginner'.tr(),
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 32),
             ],

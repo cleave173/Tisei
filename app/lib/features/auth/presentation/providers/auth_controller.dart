@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/offline/local_cache.dart';
 import '../../data/auth_repository.dart';
 import '../../data/models/user_dto.dart';
 
@@ -40,14 +41,19 @@ class AuthController extends StateNotifier<AuthState> {
       final UserDto u = await _repo.me();
       state = AuthAuthenticated(u);
     } catch (_) {
-      await _repo.logout();
-      state = const AuthUnauthenticated();
+      try {
+        await _repo.logout();
+      } finally {
+        await (await LocalCache.instance).clear();
+        state = const AuthUnauthenticated();
+      }
     }
   }
 
   Future<void> login(String email, String password) async {
     try {
       await _repo.login(email: email, password: password);
+      await (await LocalCache.instance).clear();
       final UserDto u = await _repo.me();
       state = AuthAuthenticated(u);
     } catch (e) {
@@ -64,6 +70,7 @@ class AuthController extends StateNotifier<AuthState> {
   }) async {
     try {
       await _repo.register(email: email, password: password, fullName: fullName, age: age);
+      await (await LocalCache.instance).clear();
       final UserDto u = await _repo.me();
       state = AuthAuthenticated(u);
     } catch (e) {
@@ -75,6 +82,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> loginWithGoogle(String idToken) async {
     try {
       await _repo.google(idToken: idToken);
+      await (await LocalCache.instance).clear();
       final UserDto u = await _repo.me();
       state = AuthAuthenticated(u);
     } catch (e) {
@@ -96,8 +104,12 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _repo.logout();
-    state = const AuthUnauthenticated();
+    try {
+      await _repo.logout();
+    } finally {
+      await (await LocalCache.instance).clear();
+      state = const AuthUnauthenticated();
+    }
   }
 }
 

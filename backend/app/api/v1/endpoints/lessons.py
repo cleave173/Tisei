@@ -22,6 +22,7 @@ from app.schemas.learning import (
     SubmitLessonIn,
     SubmitLessonOut,
 )
+from app.services import achievement_service, progress_service
 
 router = APIRouter()
 
@@ -167,7 +168,6 @@ async def submit_lesson(
     total = len(lesson.questions) or 1
     score = round(correct / total * 100)
     is_completed = score >= 60
-    xp_earned = lesson.xp_reward if is_completed else max(1, lesson.xp_reward // 4)
 
     progress = (
         await db.execute(
@@ -176,6 +176,15 @@ async def submit_lesson(
             )
         )
     ).scalar_one_or_none()
+    was_completed = bool(progress and progress.is_completed)
+    is_first_attempt = progress is None
+    if is_completed and not was_completed:
+        xp_earned = lesson.xp_reward
+    elif is_first_attempt:
+        xp_earned = max(1, lesson.xp_reward // 4)
+    else:
+        xp_earned = 0
+
     if progress is None:
         progress = UserProgress(
             user_id=current.id,
@@ -197,11 +206,9 @@ async def submit_lesson(
             progress.is_completed = True
             progress.completed_at = datetime.now(timezone.utc)
 
-    # Award XP on profile (explicit fetch — no lazy load in async)
-    from app.models import Profile
-    profile = await db.get(Profile, current.id)
-    if profile is not None:
-        profile.experience_points += xp_earned
+    if xp_earned > 0:
+        await progress_service.apply_learning_activity_for_user(db, current.id, xp_earned)
+        await achievement_service.grant_achievements(db, current.id)
 
     await db.commit()
 

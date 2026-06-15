@@ -57,20 +57,19 @@ async def list_topics(
     }
 
     # Resolve effective level filter:
-    #   - explicit level param wins (including "ANY" → no filter)
-    #   - else: user profile cefr_level if authenticated
-    #   - else: no filter
+    #   - if authenticated: lock to user's profile level (or CefrLevel.A1 if NULL)
+    #   - if not authenticated: fallback to level param (or no filter if not provided/ANY)
     effective_level: CefrLevel | None = None
-    if level:
+    if current is not None:
+        profile = await db.get(Profile, current.id)
+        if profile is not None:
+            effective_level = profile.cefr_level or CefrLevel.A1
+    elif level:
         if level.upper() != "ANY":
             try:
                 effective_level = CefrLevel(level.upper())
             except ValueError as exc:
                 raise HTTPException(400, f"Invalid CEFR level: {level}") from exc
-    elif current is not None:
-        profile = await db.get(Profile, current.id)
-        if profile is not None and profile.cefr_level is not None:
-            effective_level = profile.cefr_level
 
     stmt = select(Topic).where(Topic.language_id == lang.id)
     if effective_level is not None:

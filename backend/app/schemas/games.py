@@ -23,6 +23,12 @@ class GameGenerateIn(BaseModel):
         default=None,
         description="CEFR level override (A1..C2). Defaults to user's level.",
     )
+    translation_lang: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=8,
+        description="Native translation language override (e.g. 'ru' or 'kk').",
+    )
 
 
 # ---------------------------------------------------------------------------

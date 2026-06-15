@@ -97,23 +97,59 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
       ),
       GoRoute(
         path: Routes.gameWordMatch,
-        builder: (BuildContext c, GoRouterState s) =>
-            WordMatchPage(topic: s.extra is String ? s.extra as String : null),
+        builder: (BuildContext c, GoRouterState s) {
+          final Object? extra = s.extra;
+          if (extra is Map<String, String>) {
+            final String? topic = extra['topic'];
+            return WordMatchPage(
+              topic: topic == null || topic.isEmpty ? null : topic,
+              translationLang: extra['translationLang'],
+            );
+          }
+          return WordMatchPage(topic: extra is String ? extra : null);
+        },
       ),
       GoRoute(
         path: Routes.gameWordScramble,
-        builder: (BuildContext c, GoRouterState s) =>
-            WordScramblePage(topic: s.extra is String ? s.extra as String : null),
+        builder: (BuildContext c, GoRouterState s) {
+          final Object? extra = s.extra;
+          if (extra is Map<String, String>) {
+            final String? topic = extra['topic'];
+            return WordScramblePage(
+              topic: topic == null || topic.isEmpty ? null : topic,
+              translationLang: extra['translationLang'],
+            );
+          }
+          return WordScramblePage(topic: extra is String ? extra : null);
+        },
       ),
       GoRoute(
         path: Routes.gameSentenceBuilder,
-        builder: (BuildContext c, GoRouterState s) =>
-            SentenceBuilderPage(topic: s.extra is String ? s.extra as String : null),
+        builder: (BuildContext c, GoRouterState s) {
+          final Object? extra = s.extra;
+          if (extra is Map<String, String>) {
+            final String? topic = extra['topic'];
+            return SentenceBuilderPage(
+              topic: topic == null || topic.isEmpty ? null : topic,
+              translationLang: extra['translationLang'],
+            );
+          }
+          return SentenceBuilderPage(topic: extra is String ? extra : null);
+        },
       ),
       GoRoute(
         path: Routes.gameHangman,
-        builder: (BuildContext c, GoRouterState s) =>
-            HangmanPage(topic: s.extra is String ? s.extra as String : null),
+        builder: (BuildContext c, GoRouterState s) {
+          final Object? extra = s.extra;
+          if (extra is Map<String, String>) {
+            final String? topic = extra['topic'];
+            return HangmanPage(
+              topic: topic == null || topic.isEmpty ? null : topic,
+              translationLang: extra['translationLang'],
+            );
+          }
+          return HangmanPage(topic: extra is String ? extra : null);
+        },
       ),
       GoRoute(
         path: Routes.learning,

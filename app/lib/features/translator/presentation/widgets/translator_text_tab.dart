@@ -6,7 +6,6 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../../../core/offline/connectivity_service.dart';
 import '../../../../core/utils/app_snack_bar.dart';
-import '../../data/ml_kit_translator_service.dart';
 import '../../data/translator_repository.dart';
 import '../providers/translator_providers.dart';
 import 'lang_pair_bar.dart';
@@ -23,7 +22,8 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
   final FlutterTts _tts = FlutterTts();
   String _output = '';
   bool _busy = false;
-  bool _downloading = false;
+  int? _historyId;
+  bool _isFavorite = false;
 
   @override
   void dispose() {
@@ -36,77 +36,26 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
     final LangPair pair = ref.read(langPairProvider);
     final bool online = await checkOnline();
 
+    if (!online) {
+      if (mounted) AppSnackBar.showError(context, 'errors.no_internet'.tr());
+      return;
+    }
     setState(() => _busy = true);
     try {
-      if (online) {
-        final TranslationResultDto r = await ref
-            .read(translatorRepositoryProvider)
-            .translate(text: _input.text, sourceLang: pair.source, targetLang: pair.target);
-        setState(() => _output = r.translatedText);
-        ref.invalidate(historyProvider(false));
-      } else {
-        await _translateOffline(pair);
-      }
+      final TranslationResultDto r = await ref
+          .read(translatorRepositoryProvider)
+          .translate(text: _input.text, sourceLang: pair.source, targetLang: pair.target);
+      setState(() {
+        _output = r.translatedText;
+        _historyId = r.historyId;
+        _isFavorite = false;
+      });
+      ref.invalidate(historyProvider(false));
     } catch (e) {
       if (mounted) AppSnackBar.showError(context, e);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  Future<void> _translateOffline(LangPair pair) async {
-    final MlKitTranslatorService svc = ref.read(mlKitTranslatorServiceProvider);
-    final bool srcReady = await svc.isDownloaded(pair.source);
-    final bool tgtReady = await svc.isDownloaded(pair.target);
-
-    if (!srcReady || !tgtReady) {
-      if (!mounted) return;
-      final bool? ok = await _showDownloadDialog(pair, srcReady, tgtReady);
-      if (ok != true) return;
-      setState(() => _downloading = true);
-      try {
-        if (!srcReady) await svc.downloadModel(pair.source);
-        if (!tgtReady) await svc.downloadModel(pair.target);
-      } finally {
-        if (mounted) setState(() => _downloading = false);
-      }
-    }
-
-    final String? result = await svc.translate(
-      text: _input.text,
-      sourceLang: pair.source,
-      targetLang: pair.target,
-    );
-    if (result == null) {
-      if (mounted) AppSnackBar.showError(context, 'translator.offline_unsupported'.tr());
-      return;
-    }
-    setState(() => _output = result);
-  }
-
-  Future<bool?> _showDownloadDialog(LangPair pair, bool srcReady, bool tgtReady) {
-    final List<String> missing = <String>[
-      if (!srcReady) pair.source.toUpperCase(),
-      if (!tgtReady) pair.target.toUpperCase(),
-    ];
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text('translator.offline_model_title'.tr()),
-        content: Text('translator.offline_model_body'.tr(args: <String>[missing.join(', ')])),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          FilledButton.icon(
-            onPressed: () => Navigator.pop(ctx, true),
-            icon: const Icon(Icons.download_rounded),
-            label: Text('translator.download'.tr()),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _speak() async {
@@ -152,12 +101,12 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
                 ),
                 const SizedBox(height: 12),
                 FilledButton.icon(
-                  onPressed: (_busy || _downloading) ? null : _translate,
-                  icon: (_busy || _downloading)
+                  onPressed: _busy ? null : _translate,
+                  icon: _busy
                       ? const SizedBox(
                           width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Icon(online ? Icons.translate : Icons.offline_bolt_rounded),
-                  label: Text(_downloading ? 'translator.downloading'.tr() : 'translator.translate'.tr()),
+                      : const Icon(Icons.translate),
+                  label: Text('translator.translate'.tr()),
                 ),
                 const SizedBox(height: 16),
                 if (_output.isNotEmpty)
@@ -185,6 +134,20 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
                               onPressed: () =>
                                   Clipboard.setData(ClipboardData(text: _output)),
                             ),
+                            if (_historyId != null)
+                              IconButton(
+                                icon: Icon(
+                                  _isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+                                  color: _isFavorite ? Colors.amber : null,
+                                ),
+                                onPressed: () async {
+                                  await ref
+                                      .read(translatorRepositoryProvider)
+                                      .toggleFavorite(_historyId!);
+                                  setState(() => _isFavorite = !_isFavorite);
+                                  ref.invalidate(historyProvider(true));
+                                },
+                              ),
                           ],
                         ),
                       ],

@@ -89,15 +89,15 @@ class GamesHubPage extends ConsumerWidget {
   }
 
   Future<void> _pickModeAndGo(BuildContext context, String route) async {
-    final String? topic = await showModalBottomSheet<String?>(
+    final Map<String, String>? result = await showModalBottomSheet<Map<String, String>?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext c) => const _ModeSheet(),
     );
-    if (topic == null) return;
+    if (result == null) return;
     if (!context.mounted) return;
-    context.push(route, extra: topic.isEmpty ? null : topic);
+    context.push(route, extra: result);
   }
 }
 
@@ -178,8 +178,6 @@ class _GameCard extends StatelessWidget {
   }
 }
 
-// ── Mode bottom sheet ─────────────────────────────────────────────────────────
-
 class _ModeSheet extends StatefulWidget {
   const _ModeSheet();
 
@@ -190,6 +188,7 @@ class _ModeSheet extends StatefulWidget {
 class _ModeSheetState extends State<_ModeSheet> {
   final TextEditingController _ctrl = TextEditingController();
   bool _aiSelected = false;
+  String? _translationLang;
 
   @override
   void dispose() {
@@ -199,6 +198,7 @@ class _ModeSheetState extends State<_ModeSheet> {
 
   @override
   Widget build(BuildContext context) {
+    _translationLang ??= context.locale.languageCode == 'kk' ? 'kk' : 'ru';
     final ColorScheme cs = Theme.of(context).colorScheme;
     final double bottom = MediaQuery.viewInsetsOf(context).bottom;
 
@@ -278,11 +278,43 @@ class _ModeSheetState extends State<_ModeSheet> {
                       maxLength: 80,
                       textCapitalization: TextCapitalization.sentences,
                       onSubmitted: (String v) {
-                        if (v.trim().isNotEmpty) Navigator.of(context).pop(v.trim());
+                        if (v.trim().isNotEmpty) {
+                          Navigator.of(context).pop(<String, String>{
+                            'topic': v.trim(),
+                            'translationLang': _translationLang!,
+                          });
+                        }
                       },
                     ),
                   )
                 : const SizedBox.shrink(),
+          ),
+
+          // Translation Language selector
+          const SizedBox(height: 20),
+          Text(
+            'games.translation_language'.tr(),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: _LanguageTile(
+                  label: 'Русский',
+                  selected: _translationLang == 'ru',
+                  onTap: () => setState(() => _translationLang = 'ru'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _LanguageTile(
+                  label: 'Қазақша',
+                  selected: _translationLang == 'kk',
+                  onTap: () => setState(() => _translationLang = 'kk'),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 20),
@@ -293,9 +325,15 @@ class _ModeSheetState extends State<_ModeSheet> {
               if (_aiSelected) {
                 final String t = _ctrl.text.trim();
                 if (t.isEmpty) return;
-                Navigator.of(context).pop(t);
+                Navigator.of(context).pop(<String, String>{
+                  'topic': t,
+                  'translationLang': _translationLang!,
+                });
               } else {
-                Navigator.of(context).pop('');
+                Navigator.of(context).pop(<String, String>{
+                  'topic': '',
+                  'translationLang': _translationLang!,
+                });
               }
             },
             style: FilledButton.styleFrom(
@@ -383,6 +421,50 @@ class _ModeTile extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? cs.primaryContainer
+              : cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(14),
+          border: selected
+              ? Border.all(color: cs.primary, width: 1.5)
+              : Border.all(color: cs.outlineVariant),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: selected
+                  ? cs.onPrimaryContainer
+                  : cs.onSurfaceVariant,
+            ),
+          ),
         ),
       ),
     );

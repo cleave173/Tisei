@@ -118,25 +118,36 @@ async def _send_resend(to: str, subject: str, html: str, text: str) -> None:
 async def _send_gmail_api(to: str, subject: str, html: str, text: str) -> None:
     import httpx
 
+    client_id = _clean_env(settings.gmail_client_id)
+    client_secret = _clean_env(settings.gmail_client_secret)
+    refresh_token = _clean_env(settings.gmail_refresh_token)
     missing = [
         name
         for name, value in {
-            "GMAIL_CLIENT_ID": settings.gmail_client_id,
-            "GMAIL_CLIENT_SECRET": settings.gmail_client_secret,
-            "GMAIL_REFRESH_TOKEN": settings.gmail_refresh_token,
+            "GMAIL_CLIENT_ID": client_id,
+            "GMAIL_CLIENT_SECRET": client_secret,
+            "GMAIL_REFRESH_TOKEN": refresh_token,
         }.items()
         if not value
     ]
     if missing:
         raise RuntimeError(f"{', '.join(missing)} required for EMAIL_BACKEND=gmail_api")
 
+    log.info(
+        "Gmail API config: client_id=%s client_secret=%s refresh_token=%s from=%s",
+        _mask_credential(client_id),
+        _mask_credential(client_secret),
+        _mask_credential(refresh_token),
+        settings.gmail_from or settings.smtp_from or settings.smtp_user,
+    )
+
     async with httpx.AsyncClient(timeout=settings.smtp_timeout_seconds) as client:
         token_response = await client.post(
             "https://oauth2.googleapis.com/token",
             data={
-                "client_id": settings.gmail_client_id,
-                "client_secret": settings.gmail_client_secret,
-                "refresh_token": settings.gmail_refresh_token,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
                 "grant_type": "refresh_token",
             },
         )
@@ -177,3 +188,15 @@ def _console(to: str, subject: str, code: str) -> None:
         f"Reset code: {code}\n"
         f"{'='*60}\n"
     )
+
+
+def _clean_env(value: str | None) -> str:
+    return (value or "").strip()
+
+
+def _mask_credential(value: str) -> str:
+    if not value:
+        return "<empty>"
+    if len(value) <= 12:
+        return f"<len={len(value)}>"
+    return f"{value[:6]}...{value[-6:]} len={len(value)}"

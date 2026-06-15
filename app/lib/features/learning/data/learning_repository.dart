@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../auth/presentation/providers/auth_controller.dart';
 import 'models/learning_models.dart';
 
 class LearningRepository {
@@ -86,12 +87,18 @@ final Provider<LearningRepository> learningRepositoryProvider =
 
 final FutureProviderFamily<List<TopicDto>, String> topicsProvider =
     FutureProvider.family<List<TopicDto>, String>(
-  (Ref ref, String code) => ref.read(learningRepositoryProvider).topics(code),
+  (Ref ref, String code) {
+    ref.watch(authControllerProvider);
+    return ref.read(learningRepositoryProvider).topics(code);
+  },
 );
 
 final FutureProviderFamily<List<LessonSummaryDto>, int> lessonsByTopicProvider =
     FutureProvider.family<List<LessonSummaryDto>, int>(
-  (Ref ref, int topicId) => ref.read(learningRepositoryProvider).lessonsByTopic(topicId),
+  (Ref ref, int topicId) {
+    ref.watch(authControllerProvider);
+    return ref.read(learningRepositoryProvider).lessonsByTopic(topicId);
+  },
 );
 
 final FutureProviderFamily<LessonDetailDto, int> lessonProvider =

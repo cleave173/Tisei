@@ -44,7 +44,7 @@ class HomePage extends ConsumerWidget {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Text('👋', style: TextStyle(fontSize: 18)),
+            const Icon(Icons.waving_hand_rounded, size: 20, color: Colors.white),
             const SizedBox(width: 8),
             Text('home.title'.tr(args: <String>[name]),
                 style: const TextStyle(color: Colors.white)),

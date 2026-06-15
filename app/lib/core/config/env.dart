@@ -10,9 +10,12 @@ class Env {
   /// Android emulator needs 10.0.2.2 to reach host machine. iOS sim / macOS use localhost.
   static String get apiBaseUrl {
     if (_apiBaseUrlOverride.isNotEmpty) return _apiBaseUrlOverride;
-    final String host = _isAndroid() ? '10.0.2.2' : 'localhost';
-    return 'http://$host:8001/api/v1';
+    return 'https://tisei-production.up.railway.app/api/v1';
   }
+
+  /// Backend root URL (no /api/v1) — used to resolve relative asset URLs like /uploads/...
+  static String get backendBaseUrl =>
+      apiBaseUrl.replaceAll(RegExp(r'/api/v1.*$'), '');
 
   static bool _isAndroid() {
     try {

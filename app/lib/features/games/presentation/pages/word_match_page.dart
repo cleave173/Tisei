@@ -10,8 +10,9 @@ import '../../data/models/game_dtos.dart';
 import '../widgets/game_widgets.dart';
 
 class WordMatchPage extends ConsumerStatefulWidget {
-  const WordMatchPage({super.key, this.topic});
+  const WordMatchPage({super.key, this.topic, this.translationLang});
   final String? topic;
+  final String? translationLang;
 
   @override
   ConsumerState<WordMatchPage> createState() => _WordMatchPageState();
@@ -54,7 +55,12 @@ class _WordMatchPageState extends ConsumerState<WordMatchPage> {
     try {
       final WordMatchDto d = await ref
           .read(gamesRepositoryProvider)
-          .generateWordMatch(topic: widget.topic, count: 8, level: _level);
+          .generateWordMatch(
+            topic: widget.topic,
+            count: 8,
+            level: _level,
+            translationLang: widget.translationLang,
+          );
       _leftWords = d.pairs.map((p) => p.word).toList();
       _rightTranslations = d.pairs.map((p) => p.translation).toList();
       _rightToLeft = List<int>.generate(d.pairs.length, (i) => i);

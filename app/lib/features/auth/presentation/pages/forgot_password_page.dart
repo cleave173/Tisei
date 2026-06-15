@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_exception.dart';
 import '../../../../core/utils/app_snack_bar.dart';
 
 final RegExp _fpEmailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
@@ -30,6 +31,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final FocusNode _codeFocus = FocusNode();
   bool _obscure = true;
   bool _busy = false;
+  String? _emailError;
+  String? _codeError;
+  String? _passwordError;
+  String? _confirmError;
   _Step _step = _Step.email;
 
   @override
@@ -46,12 +51,14 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   Future<void> _sendCode() async {
     final String email = _email.text.trim();
+    String? emailErr;
     if (email.isEmpty) {
-      AppSnackBar.showWarning(context, 'auth.fields_required'.tr());
-      return;
+      emailErr = 'auth.fields_required'.tr();
+    } else if (!_fpEmailRe.hasMatch(email)) {
+      emailErr = 'auth.email_invalid'.tr();
     }
-    if (!_fpEmailRe.hasMatch(email)) {
-      AppSnackBar.showWarning(context, 'auth.email_invalid'.tr());
+    setState(() => _emailError = emailErr);
+    if (emailErr != null) {
       return;
     }
     if (_busy) return;
@@ -81,16 +88,26 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   Future<void> _resetPassword() async {
     final String code = _code.text.trim();
+    String? codeErr;
+    String? passwordErr;
+    String? confirmErr;
     if (code.length != 6) {
-      AppSnackBar.showWarning(context, 'auth.code_invalid'.tr());
-      return;
+      codeErr = 'auth.code_invalid'.tr();
     }
     if (!_isStrongPw(_password.text)) {
-      AppSnackBar.showWarning(context, 'auth.password_weak'.tr());
-      return;
+      passwordErr = 'auth.password_weak'.tr();
     }
-    if (_password.text != _confirm.text) {
-      AppSnackBar.showWarning(context, 'auth.passwords_mismatch'.tr());
+    if (_confirm.text.isEmpty) {
+      confirmErr = 'auth.fields_required'.tr();
+    } else if (_password.text != _confirm.text) {
+      confirmErr = 'auth.passwords_mismatch'.tr();
+    }
+    setState(() {
+      _codeError = codeErr;
+      _passwordError = passwordErr;
+      _confirmError = confirmErr;
+    });
+    if (codeErr != null || passwordErr != null || confirmErr != null) {
       return;
     }
     if (_busy) return;
@@ -114,6 +131,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       }
     } catch (e) {
       if (mounted) {
+        if (e is ApiException &&
+            e.message ==
+                'New password must be different from the old password') {
+          setState(() {
+            _passwordError = 'auth.password_same_as_old'.tr();
+            _busy = false;
+          });
+          return;
+        }
         AppSnackBar.showError(context, e);
         setState(() => _busy = false);
       }
@@ -131,7 +157,11 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         child: switch (_step) {
           _Step.email => _EmailStep(
             email: _email,
+            errorText: _emailError,
             busy: _busy,
+            onChanged: (_) {
+              if (_emailError != null) setState(() => _emailError = null);
+            },
             onSubmit: _sendCode,
           ),
           _Step.reset => _ResetStep(
@@ -140,10 +170,27 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             password: _password,
             confirm: _confirm,
             codeFocus: _codeFocus,
+            codeError: _codeError,
+            passwordError: _passwordError,
+            confirmError: _confirmError,
             obscure: _obscure,
             busy: _busy,
             onToggleObscure: () => setState(() => _obscure = !_obscure),
             onResend: () => setState(() => _step = _Step.email),
+            onCodeChanged: (_) {
+              if (_codeError != null) setState(() => _codeError = null);
+            },
+            onPasswordChanged: (_) {
+              if (_passwordError != null) {
+                setState(() => _passwordError = null);
+              }
+              if (_confirmError != null && _confirm.text == _password.text) {
+                setState(() => _confirmError = null);
+              }
+            },
+            onConfirmChanged: (_) {
+              if (_confirmError != null) setState(() => _confirmError = null);
+            },
             onSubmit: _resetPassword,
           ),
           _Step.done => _DoneStep(onBack: () => Navigator.of(context).pop()),
@@ -158,11 +205,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 class _EmailStep extends StatelessWidget {
   const _EmailStep({
     required this.email,
+    required this.errorText,
     required this.busy,
+    required this.onChanged,
     required this.onSubmit,
   });
   final TextEditingController email;
+  final String? errorText;
   final bool busy;
+  final ValueChanged<String> onChanged;
   final VoidCallback onSubmit;
 
   @override
@@ -196,10 +247,12 @@ class _EmailStep extends StatelessWidget {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.done,
           enabled: !busy,
+          onChanged: onChanged,
           onSubmitted: (_) => onSubmit(),
           decoration: InputDecoration(
             labelText: 'auth.email'.tr(),
             prefixIcon: const Icon(Icons.email_outlined),
+            errorText: errorText,
           ),
         ),
         const SizedBox(height: 24),
@@ -227,16 +280,24 @@ class _ResetStep extends StatelessWidget {
     required this.password,
     required this.confirm,
     required this.codeFocus,
+    required this.codeError,
+    required this.passwordError,
+    required this.confirmError,
     required this.obscure,
     required this.busy,
     required this.onToggleObscure,
     required this.onResend,
+    required this.onCodeChanged,
+    required this.onPasswordChanged,
+    required this.onConfirmChanged,
     required this.onSubmit,
   });
   final String email;
   final TextEditingController code, password, confirm;
   final FocusNode codeFocus;
+  final String? codeError, passwordError, confirmError;
   final bool obscure, busy;
+  final ValueChanged<String> onCodeChanged, onPasswordChanged, onConfirmChanged;
   final VoidCallback onToggleObscure, onResend, onSubmit;
 
   @override
@@ -267,6 +328,7 @@ class _ResetStep extends StatelessWidget {
           textAlign: TextAlign.center,
           maxLength: 6,
           enabled: !busy,
+          onChanged: onCodeChanged,
           inputFormatters: <TextInputFormatter>[
             FilteringTextInputFormatter.digitsOnly,
           ],
@@ -278,6 +340,7 @@ class _ResetStep extends StatelessWidget {
           decoration: InputDecoration(
             labelText: 'auth.reset_code'.tr(),
             counterText: '',
+            errorText: codeError,
           ),
         ),
         const SizedBox(height: 12),
@@ -285,9 +348,11 @@ class _ResetStep extends StatelessWidget {
           controller: password,
           obscureText: obscure,
           enabled: !busy,
+          onChanged: onPasswordChanged,
           decoration: InputDecoration(
             labelText: 'auth.password'.tr(),
             prefixIcon: const Icon(Icons.lock_outlined),
+            errorText: passwordError,
             suffixIcon: IconButton(
               icon: Icon(
                 obscure
@@ -305,10 +370,12 @@ class _ResetStep extends StatelessWidget {
           obscureText: obscure,
           enabled: !busy,
           textInputAction: TextInputAction.done,
+          onChanged: onConfirmChanged,
           onSubmitted: (_) => onSubmit(),
           decoration: InputDecoration(
             labelText: 'auth.password_confirm'.tr(),
             prefixIcon: const Icon(Icons.lock_outlined),
+            errorText: confirmError,
           ),
         ),
         const SizedBox(height: 20),

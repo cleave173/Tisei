@@ -12,8 +12,9 @@ import '../../data/models/game_dtos.dart';
 import '../widgets/game_widgets.dart';
 
 class WordScramblePage extends ConsumerStatefulWidget {
-  const WordScramblePage({super.key, this.topic});
+  const WordScramblePage({super.key, this.topic, this.translationLang});
   final String? topic;
+  final String? translationLang;
 
   @override
   ConsumerState<WordScramblePage> createState() => _WordScramblePageState();
@@ -56,7 +57,12 @@ class _WordScramblePageState extends ConsumerState<WordScramblePage> {
     try {
       final WordScrambleDto d = await ref
           .read(gamesRepositoryProvider)
-          .generateWordScramble(topic: widget.topic, count: 8, level: _level);
+          .generateWordScramble(
+            topic: widget.topic,
+            count: 8,
+            level: _level,
+            translationLang: widget.translationLang,
+          );
       setState(() {
         _data = d;
         _loading = false;

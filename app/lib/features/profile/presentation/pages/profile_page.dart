@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/config/env.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_snack_bar.dart';
 import '../../../auth/data/auth_repository.dart';
@@ -17,14 +18,14 @@ int _xpForLevel(int level) => level * 200;
 int _xpAtLevelStart(int level) => 100 * level * (level - 1);
 
 Color _cefrColor(String? cefr) => switch (cefr?.toUpperCase()) {
-      'A1' => const Color(0xFF1565C0),
-      'A2' => const Color(0xFF0097A7),
-      'B1' => const Color(0xFF2E7D32),
-      'B2' => const Color(0xFF558B2F),
-      'C1' => const Color(0xFFE65100),
-      'C2' => const Color(0xFFC62828),
-      _ => const Color(0xFF757575),
-    };
+  'A1' => const Color(0xFF1565C0),
+  'A2' => const Color(0xFF0097A7),
+  'B1' => const Color(0xFF2E7D32),
+  'B2' => const Color(0xFF558B2F),
+  'C1' => const Color(0xFFE65100),
+  'C2' => const Color(0xFFC62828),
+  _ => const Color(0xFF757575),
+};
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -152,6 +153,9 @@ class _ProfileHeader extends StatelessWidget {
   final UserDto user;
   final VoidCallback onChangeAvatar;
 
+  static String _resolveUrl(String url) =>
+      url.startsWith('http') ? url : '${Env.backendBaseUrl}$url';
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
@@ -177,12 +181,18 @@ class _ProfileHeader extends StatelessWidget {
                   radius: 44,
                   backgroundColor: Colors.white24,
                   backgroundImage: user.avatarUrl != null
-                      ? CachedNetworkImageProvider(user.avatarUrl!)
+                      ? CachedNetworkImageProvider(_resolveUrl(user.avatarUrl!))
                       : null,
                   child: user.avatarUrl == null
                       ? Text(
-                          user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                          style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.w700),
+                          user.fullName.isNotEmpty
+                              ? user.fullName[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontSize: 36,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         )
                       : null,
                 ),
@@ -195,7 +205,11 @@ class _ProfileHeader extends StatelessWidget {
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.black87),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      size: 16,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -204,10 +218,17 @@ class _ProfileHeader extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             user.fullName,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(user.email, style: const TextStyle(fontSize: 13, color: Colors.white70)),
+          Text(
+            user.email,
+            style: const TextStyle(fontSize: 13, color: Colors.white70),
+          ),
           if (cefr != null) ...<Widget>[
             const SizedBox(height: 10),
             Container(
@@ -218,7 +239,11 @@ class _ProfileHeader extends StatelessWidget {
               ),
               child: Text(
                 cefr,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
@@ -254,11 +279,19 @@ class _XpCard extends StatelessWidget {
               children: <Widget>[
                 Text(
                   'profile.level_n'.tr(args: <String>['$level']),
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
                 ),
                 Text(
-                  'profile.xp_progress'.tr(args: <String>['$inLevel', '$needed']),
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  'profile.xp_progress'.tr(
+                    args: <String>['$inLevel', '$needed'],
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -268,13 +301,20 @@ class _XpCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: fraction,
                 minHeight: 8,
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              'profile.xp_to_next'.tr(args: <String>['${(needed - inLevel).clamp(0, needed)}']),
-              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              'profile.xp_to_next'.tr(
+                args: <String>['${(needed - inLevel).clamp(0, needed)}'],
+              ),
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -293,21 +333,31 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        _StatCard(icon: Icons.local_fire_department_rounded, color: const Color(0xFFE65100),
-            label: 'profile.streak'.tr(), value: '${profile.streakDays}'),
+        _StatCard(
+          icon: Icons.local_fire_department_rounded,
+          color: const Color(0xFFE65100),
+          label: 'profile.streak'.tr(),
+          value: '${profile.streakDays}',
+        ),
         const SizedBox(width: 8),
-        _StatCard(icon: Icons.star_rounded, color: const Color(0xFFF9A825),
-            label: 'profile.xp'.tr(), value: '${profile.experiencePoints}'),
-        const SizedBox(width: 8),
-        _StatCard(icon: Icons.flag_rounded, color: Theme.of(context).colorScheme.primary,
-            label: 'profile.daily_goal'.tr(), value: '${profile.dailyGoalXp} XP'),
+        _StatCard(
+          icon: Icons.star_rounded,
+          color: const Color(0xFFF9A825),
+          label: 'profile.xp'.tr(),
+          value: '${profile.experiencePoints}',
+        ),
       ],
     );
   }
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.icon, required this.color, required this.label, required this.value});
+  const _StatCard({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.value,
+  });
   final IconData icon;
   final Color color;
   final String label;
@@ -323,9 +373,21 @@ class _StatCard extends StatelessWidget {
             children: <Widget>[
               Icon(icon, color: color, size: 22),
               const SizedBox(height: 6),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-              Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  textAlign: TextAlign.center),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
@@ -372,12 +434,19 @@ class _GuestProfilePage extends StatelessWidget {
               CircleAvatar(
                 radius: 48,
                 backgroundColor: cs.surfaceContainerHighest,
-                child: Icon(Icons.person_outline_rounded, size: 52, color: cs.onSurfaceVariant),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  size: 52,
+                  color: cs.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               Text(
                 'auth.guest_title'.tr(),
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -391,14 +460,18 @@ class _GuestProfilePage extends StatelessWidget {
                 onPressed: () => context.go(Routes.register),
                 icon: const Icon(Icons.person_add_outlined),
                 label: Text('auth.register'.tr()),
-                style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => context.go(Routes.login),
                 icon: const Icon(Icons.login_outlined),
                 label: Text('auth.login'.tr()),
-                style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
               ),
             ],
           ),
@@ -433,7 +506,10 @@ class _MenuSection extends StatelessWidget {
         const Divider(indent: 16, endIndent: 16),
         ListTile(
           leading: const Icon(Icons.logout, color: Colors.red),
-          title: Text('profile.logout'.tr(), style: const TextStyle(color: Colors.red)),
+          title: Text(
+            'profile.logout'.tr(),
+            style: const TextStyle(color: Colors.red),
+          ),
           onTap: onLogout,
         ),
       ],

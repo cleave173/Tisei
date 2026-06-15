@@ -10,8 +10,9 @@ import '../../data/models/game_dtos.dart';
 import '../widgets/game_widgets.dart';
 
 class HangmanPage extends ConsumerStatefulWidget {
-  const HangmanPage({super.key, this.topic});
+  const HangmanPage({super.key, this.topic, this.translationLang});
   final String? topic;
+  final String? translationLang;
 
   @override
   ConsumerState<HangmanPage> createState() => _HangmanPageState();
@@ -76,7 +77,11 @@ class _HangmanPageState extends ConsumerState<HangmanPage> {
     try {
       final HangmanDto d = await ref
           .read(gamesRepositoryProvider)
-          .generateHangman(topic: widget.topic, level: _level);
+          .generateHangman(
+            topic: widget.topic,
+            level: _level,
+            translationLang: widget.translationLang,
+          );
       setState(() {
         _data = d;
         _loading = false;

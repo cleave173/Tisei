@@ -14,9 +14,9 @@ class AppSnackBar {
 
   // ── Public API ────────────────────────────────────────────────────────────
 
-  static void showError(BuildContext context, dynamic error) {
+  static void showError(BuildContext context, dynamic error, {Duration? duration}) {
     final String raw = _friendly(error);
-    _show(message: _localize(raw), type: _Type.error);
+    _show(message: _localize(raw), type: _Type.error, duration: duration);
   }
 
   // Maps known backend English messages → localization keys
@@ -40,14 +40,14 @@ class AppSnackBar {
     return raw;
   }
 
-  static void showSuccess(BuildContext context, String message) =>
-      _show(message: message, type: _Type.success);
+  static void showSuccess(BuildContext context, String message, {Duration? duration}) =>
+      _show(message: message, type: _Type.success, duration: duration);
 
-  static void showInfo(BuildContext context, String message) =>
-      _show(message: message, type: _Type.info);
+  static void showInfo(BuildContext context, String message, {Duration? duration}) =>
+      _show(message: message, type: _Type.info, duration: duration);
 
-  static void showWarning(BuildContext context, String message) =>
-      _show(message: message, type: _Type.warning);
+  static void showWarning(BuildContext context, String message, {Duration? duration}) =>
+      _show(message: message, type: _Type.warning, duration: duration);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -75,8 +75,9 @@ class AppSnackBar {
   static void _show({
     required String message,
     required _Type type,
+    Duration? duration,
   }) {
-    final (Color bg, IconData icon, Duration dur) = switch (type) {
+    final (Color bg, IconData icon, Duration defaultDur) = switch (type) {
       _Type.error => (
           const Color(0xFFC62828),
           Icons.error_outline_rounded,
@@ -98,6 +99,14 @@ class AppSnackBar {
           const Duration(seconds: 5),
         ),
     };
+
+    Duration dur = duration ?? defaultDur;
+
+    // Auto-detect experience snackbars and cap duration at 3 seconds
+    final String lower = message.toLowerCase();
+    if (lower.contains('xp') || lower.contains('опыт') || lower.contains('experience')) {
+      dur = const Duration(seconds: 3);
+    }
 
     rootKey.currentState
       ?..clearSnackBars()

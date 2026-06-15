@@ -50,6 +50,7 @@ async def word_match_generate(
             language_code=payload.language,
             count=payload.count,
             level_override=payload.level,
+            translation_lang=payload.translation_lang,
         )
     except Exception as exc:
         raise _to_http(exc) from exc
@@ -70,6 +71,7 @@ async def word_scramble_generate(
             language_code=payload.language,
             count=payload.count,
             level_override=payload.level,
+            translation_lang=payload.translation_lang,
         )
     except Exception as exc:
         raise _to_http(exc) from exc
@@ -90,6 +92,7 @@ async def sentence_builder_generate(
             language_code=payload.language,
             count=payload.count,
             level_override=payload.level,
+            translation_lang=payload.translation_lang,
         )
     except Exception as exc:
         raise _to_http(exc) from exc
@@ -109,6 +112,7 @@ async def hangman_generate(
             topic=payload.topic,
             language_code=payload.language,
             level_override=payload.level,
+            translation_lang=payload.translation_lang,
         )
     except Exception as exc:
         raise _to_http(exc) from exc

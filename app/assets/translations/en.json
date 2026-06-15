@@ -33,6 +33,7 @@
     "name_invalid": "Name must be at least 2 characters",
     "password_weak": "Password must be ≥8 chars with a letter and a number",
     "passwords_mismatch": "Passwords do not match",
+    "password_same_as_old": "New password must be different from the old password",
     "password_confirm": "Confirm password",
     "password_requirements": "At least 8 characters, one letter and one number",
     "age_hint": "Your age helps us personalize your learning",
@@ -271,7 +272,7 @@
     "placement_intro_title": "What's your English level?",
     "placement_intro_body": "Answer a few vocabulary questions to find your starting point. The test takes about 5 minutes.",
     "take_test": "Take the placement test",
-    "skip_to_beginner": "Start from the very beginning",
+    "skip_to_beginner": "Start from scratch",
     "answer_honestly": "Please answer honestly — don't guess!",
     "dont_know": "I don't know",
     "level_up_locked": "Level {} is locked",
@@ -291,6 +292,7 @@
     "sub_test_failed": "This is feedback, not failure. Review the words and try again.",
     "default_label": "Default",
     "custom_image": "Custom image",
+    "upload_hint": "For transparent characters, upload a PNG or WebP image with a transparent background. PDF files are not used for character slots.",
     "upload": "Upload image",
     "remove": "Remove"
   },
@@ -314,6 +316,7 @@
     "level_my": "My level ({})",
     "level_my_hint": "Words at your current CEFR level",
     "level_explicit": "Or pick a specific level:",
+    "translation_language": "Translation language",
     "word_match": {
       "title": "Word Match",
       "subtitle": "Pair words with translations",

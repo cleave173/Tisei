@@ -12,6 +12,7 @@ class GamesRepository {
     String language = 'en',
     int count = 8,
     String? level,
+    String? translationLang,
   }) {
     final Map<String, dynamic> b = <String, dynamic>{
       'language': language,
@@ -19,6 +20,9 @@ class GamesRepository {
     };
     if (topic != null && topic.trim().isNotEmpty) b['topic'] = topic.trim();
     if (level != null) b['level'] = level;
+    if (translationLang != null && translationLang.isNotEmpty) {
+      b['translation_lang'] = translationLang;
+    }
     return b;
   }
 
@@ -27,10 +31,17 @@ class GamesRepository {
     String language = 'en',
     int count = 8,
     String? level,
+    String? translationLang,
   }) async {
     final dynamic data = await _api.post(
       '/games/word-match/generate',
-      body: _body(topic: topic, language: language, count: count, level: level),
+      body: _body(
+        topic: topic,
+        language: language,
+        count: count,
+        level: level,
+        translationLang: translationLang,
+      ),
     );
     return WordMatchDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -40,10 +51,17 @@ class GamesRepository {
     String language = 'en',
     int count = 8,
     String? level,
+    String? translationLang,
   }) async {
     final dynamic data = await _api.post(
       '/games/word-scramble/generate',
-      body: _body(topic: topic, language: language, count: count, level: level),
+      body: _body(
+        topic: topic,
+        language: language,
+        count: count,
+        level: level,
+        translationLang: translationLang,
+      ),
     );
     return WordScrambleDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -53,10 +71,17 @@ class GamesRepository {
     String language = 'en',
     int count = 5,
     String? level,
+    String? translationLang,
   }) async {
     final dynamic data = await _api.post(
       '/games/sentence-builder/generate',
-      body: _body(topic: topic, language: language, count: count, level: level),
+      body: _body(
+        topic: topic,
+        language: language,
+        count: count,
+        level: level,
+        translationLang: translationLang,
+      ),
     );
     return SentenceBuilderDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -65,10 +90,16 @@ class GamesRepository {
     String? topic,
     String language = 'en',
     String? level,
+    String? translationLang,
   }) async {
     final dynamic data = await _api.post(
       '/games/hangman/generate',
-      body: _body(topic: topic, language: language, level: level),
+      body: _body(
+        topic: topic,
+        language: language,
+        level: level,
+        translationLang: translationLang,
+      ),
     );
     return HangmanDto.fromJson(Map<String, dynamic>.from(data as Map));
   }

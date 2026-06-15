@@ -191,6 +191,12 @@ async def reset_password(db: AsyncSession, email: str, code: str, new_password: 
     if reset is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
 
+    if user.password_hash and verify_password(new_password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from the old password",
+        )
+
     reset.used = True
     user.password_hash = hash_password(new_password)
     await db.flush()
