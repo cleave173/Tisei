@@ -17,7 +17,7 @@
     </queries>
 
     <application
-        android:label="tisei"
+        android:label="жоба"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
