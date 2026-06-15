@@ -112,40 +112,50 @@ class AppSnackBar {
       dur = const Duration(seconds: 3);
     }
 
-    rootKey.currentState
-      ?..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: bg,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          duration: dur,
-          content: Row(
-            children: <Widget>[
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    height: 1.35,
-                  ),
+    final ScaffoldMessengerState? messenger = rootKey.currentState;
+    if (messenger == null) return;
+
+    messenger.clearSnackBars();
+    final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> controller =
+        messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: bg,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: dur,
+        content: Row(
+          children: <Widget>[
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  height: 1.35,
                 ),
               ),
-            ],
-          ),
-          action: SnackBarAction(
-            label: '✕',
-            textColor: Colors.white70,
-            onPressed: () => rootKey.currentState?.hideCurrentSnackBar(),
-          ),
+            ),
+          ],
         ),
-      );
+        action: SnackBarAction(
+          label: '✕',
+          textColor: Colors.white70,
+          onPressed: () => rootKey.currentState?.hideCurrentSnackBar(),
+        ),
+      ),
+    );
+
+    // Force close after duration to bypass any system/accessibility overrides
+    Future<void>.delayed(dur, () {
+      try {
+        controller.close();
+      } catch (_) {}
+    });
   }
 }
 
