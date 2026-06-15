@@ -203,6 +203,7 @@ async def generate_placement(
     *,
     user: User,
     language_code: str = "en",
+    translation_lang: str | None = None,
     seed: int | None = None,
 ) -> tuple[list[GeneratedQuestion], int, int]:
     """Generate the 30-question placement set. Returns (questions, language_id, attempt_id).
@@ -215,7 +216,7 @@ async def generate_placement(
     rng = random.Random(seed)
     profile = await _get_profile(db, user)
     language_id = await _resolve_language_id(db, language_code)
-    tcol = _translation_field(profile.interface_language)
+    tcol = _translation_field(translation_lang or profile.interface_language)
 
     questions: list[GeneratedQuestion] = []
     for level in LEVEL_ORDER:
@@ -259,6 +260,7 @@ async def generate_level_up(
     *,
     user: User,
     language_code: str = "en",
+    translation_lang: str | None = None,
     seed: int | None = None,
 ) -> tuple[list[GeneratedQuestion], int, int, CefrLevel]:
     """Generate a 20-question level-up test for the user's current level.
@@ -275,7 +277,7 @@ async def generate_level_up(
         raise ValueError("User is already at the highest level (C2)")
 
     language_id = await _resolve_language_id(db, language_code)
-    tcol = _translation_field(profile.interface_language)
+    tcol = _translation_field(translation_lang or profile.interface_language)
     from_level = profile.cefr_level
 
     pool = await _candidate_words(
@@ -350,9 +352,10 @@ async def score_placement(
     attempt_id: int,
     user: User,
     answers: list[Answer],
+    translation_lang: str | None = None,
 ) -> ScoreResult:
     profile = await _get_profile(db, user)
-    tcol = _translation_field(profile.interface_language)
+    tcol = _translation_field(translation_lang or profile.interface_language)
 
     attempt = await db.get(LevelAssessment, attempt_id)
     if attempt is None or attempt.user_id != user.id:
@@ -402,9 +405,10 @@ async def score_level_up(
     attempt_id: int,
     user: User,
     answers: list[Answer],
+    translation_lang: str | None = None,
 ) -> ScoreResult:
     profile = await _get_profile(db, user)
-    tcol = _translation_field(profile.interface_language)
+    tcol = _translation_field(translation_lang or profile.interface_language)
 
     attempt = await db.get(LevelAssessment, attempt_id)
     if attempt is None or attempt.user_id != user.id:

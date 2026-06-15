@@ -78,12 +78,13 @@ async def my_level_status(
 @router.post("/placement/start", response_model=AssessmentStartOut)
 async def start_placement(
     language: str = Query(default="en"),
+    translation_lang: str | None = Query(default=None),
     current: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> AssessmentStartOut:
     try:
         questions, _, attempt_id = await assessment_service.generate_placement(
-            db, user=current, language_code=language
+            db, user=current, language_code=language, translation_lang=translation_lang
         )
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
@@ -110,6 +111,7 @@ async def submit_placement(
                 assessment_service.Answer(word_id=a.word_id, chosen=a.chosen)
                 for a in payload.answers
             ],
+            translation_lang=payload.translation_lang,
         )
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
@@ -123,12 +125,13 @@ async def submit_placement(
 @router.post("/level-up/start", response_model=AssessmentStartOut)
 async def start_level_up(
     language: str = Query(default="en"),
+    translation_lang: str | None = Query(default=None),
     current: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> AssessmentStartOut:
     try:
         questions, _, attempt_id, from_level = await assessment_service.generate_level_up(
-            db, user=current, language_code=language
+            db, user=current, language_code=language, translation_lang=translation_lang
         )
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
@@ -155,6 +158,7 @@ async def submit_level_up(
                 assessment_service.Answer(word_id=a.word_id, chosen=a.chosen)
                 for a in payload.answers
             ],
+            translation_lang=payload.translation_lang,
         )
     except ValueError as e:
         raise HTTPException(400, str(e)) from e

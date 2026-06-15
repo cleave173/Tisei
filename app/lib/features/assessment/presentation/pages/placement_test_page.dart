@@ -25,6 +25,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
   bool _introShown = false; // starts false — show intro first
   bool _loading = false;
   String? _error;
+  String? _translationLang;
 
   int _index = 0;
   final Map<int, String> _answers = <int, String>{};
@@ -38,8 +39,9 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
     // Do NOT auto-start — user must tap "Take test" on the intro screen.
   }
 
-  Future<void> _start() async {
+  Future<void> _start(String translationLang) async {
     setState(() {
+      _translationLang = translationLang;
       _introShown = true;
       _loading = true;
       _error = null;
@@ -47,7 +49,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
     try {
       final AssessmentStartDto s = await ref
           .read(assessmentRepositoryProvider)
-          .startPlacement();
+          .startPlacement(translationLang: translationLang);
       setState(() {
         _session = s;
         _loading = false;
@@ -105,6 +107,7 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
                   (MapEntry<int, String> e) => (wordId: e.key, chosen: e.value),
                 )
                 .toList(),
+            translationLang: _translationLang,
           );
       await ref.read(authControllerProvider.notifier).refresh();
       ref.invalidate(levelStatusProvider);
@@ -152,7 +155,10 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
             children: <Widget>[
               Text(_error!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 16),
-              FilledButton(onPressed: _start, child: Text('common.retry'.tr())),
+              FilledButton(
+                onPressed: () => _start(_translationLang ?? 'ru'),
+                child: Text('common.retry'.tr()),
+              ),
             ],
           ),
         ),
@@ -181,15 +187,29 @@ class _PlacementTestPageState extends ConsumerState<PlacementTestPage> {
 // Intro screen
 // ---------------------------------------------------------------------------
 
-class _PlacementIntroScreen extends StatelessWidget {
+class _PlacementIntroScreen extends StatefulWidget {
   const _PlacementIntroScreen({required this.onStart, required this.onSkip});
 
-  final VoidCallback onStart;
+  final void Function(String translationLang) onStart;
   final VoidCallback onSkip;
+
+  @override
+  State<_PlacementIntroScreen> createState() => _PlacementIntroScreenState();
+}
+
+class _PlacementIntroScreenState extends State<_PlacementIntroScreen> {
+  late String _translationLang;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _translationLang = context.locale.languageCode == 'kk' ? 'kk' : 'ru';
+  }
 
   @override
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
+    final ColorScheme cs = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -216,17 +236,42 @@ class _PlacementIntroScreen extends StatelessWidget {
                 'assessment.placement_intro_body'.tr(),
                 style: TextStyle(
                   fontSize: 16,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: cs.onSurface.withValues(alpha: 0.6),
                   height: 1.55,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const Spacer(flex: 3),
+              const Spacer(flex: 2),
+              // ── Translation Language Selector ─────────────────────────────
+              Text(
+                'games.translation_language'.tr(),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _AssessmentLanguageTile(
+                      label: 'Русский',
+                      selected: _translationLang == 'ru',
+                      onTap: () => setState(() => _translationLang = 'ru'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _AssessmentLanguageTile(
+                      label: 'Қазақша',
+                      selected: _translationLang == 'kk',
+                      onTap: () => setState(() => _translationLang = 'kk'),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(flex: 1),
               // ── Take test ─────────────────────────────────────────────────
               FilledButton(
-                onPressed: onStart,
+                onPressed: () => widget.onStart(_translationLang),
                 child: Text(
                   'assessment.take_test'.tr(),
                   textAlign: TextAlign.center,
@@ -235,7 +280,7 @@ class _PlacementIntroScreen extends StatelessWidget {
               const SizedBox(height: 12),
               // ── Skip ──────────────────────────────────────────────────────
               OutlinedButton(
-                onPressed: onSkip,
+                onPressed: widget.onSkip,
                 child: Text(
                   'assessment.skip_to_beginner'.tr(),
                   textAlign: TextAlign.center,
@@ -243,6 +288,47 @@ class _PlacementIntroScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AssessmentLanguageTile extends StatelessWidget {
+  const _AssessmentLanguageTile({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? cs.primary.withValues(alpha: 0.12) : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: selected ? cs.primary : cs.outlineVariant,
+          width: selected ? 2 : 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? cs.primary : cs.onSurfaceVariant,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
           ),
         ),
       ),

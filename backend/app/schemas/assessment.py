@@ -30,6 +30,7 @@ class AssessmentAnswerIn(BaseModel):
 class AssessmentSubmitIn(BaseModel):
     attempt_id: int
     answers: list[AssessmentAnswerIn]
+    translation_lang: str | None = None
 
 
 class LevelScore(BaseModel):

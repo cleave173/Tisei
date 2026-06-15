@@ -104,7 +104,11 @@ class AppSnackBar {
 
     // Auto-detect experience snackbars and cap duration at 3 seconds
     final String lower = message.toLowerCase();
-    if (lower.contains('xp') || lower.contains('опыт') || lower.contains('experience')) {
+    if (lower.contains('xp') ||
+        lower.contains('хр') || // Cyrillic
+        lower.contains('опыт') ||
+        lower.contains('experience') ||
+        lower.contains('+')) {
       dur = const Duration(seconds: 3);
     }
 
