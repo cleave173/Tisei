@@ -71,7 +71,7 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
       _lastResult = null;
     });
 
-    String last = '';
+    String lastRecognized = '';
     await _stt.listen(
       localeId: 'en_US',
       listenOptions: stt.SpeechListenOptions(
@@ -79,8 +79,10 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
         cancelOnError: true,
       ),
       onResult: (r) {
-        last = r.recognizedWords;
-        if (mounted) setState(() => _recognizedDraft = last);
+        final String text = r.recognizedWords.trim();
+        if (text.isEmpty) return;
+        lastRecognized = text;
+        if (mounted) setState(() => _recognizedDraft = text);
       },
     );
 
@@ -90,7 +92,10 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
     }
     if (!mounted) return;
     setState(() => _listening = false);
-    await _evaluate(target, last);
+    final String recognized = lastRecognized.isNotEmpty
+        ? lastRecognized
+        : _recognizedDraft;
+    await _evaluate(target, recognized);
   }
 
   Future<void> _stop() async {
@@ -137,7 +142,8 @@ class _SpeakingQuizPageState extends ConsumerState<SpeakingQuizPage> {
       appBar: AppBar(title: Text('speaking.title'.tr())),
       body: words.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object e, _) => Center(child: Text('$e')),
+        error: (Object e, _) =>
+            Center(child: Text(AppSnackBar.friendlyMessage(e))),
         data: (List<WordDto> list) {
           if (list.isEmpty) {
             return Center(child: Text('learning.no_words'.tr()));

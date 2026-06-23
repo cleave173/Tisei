@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../data/models/learning_models.dart';
 
 /// Vocabulary card: lemma + IPA + translation + TTS audio playback.
@@ -68,9 +67,13 @@ class _WordCardState extends State<WordCard> {
                     children: <Widget>[
                       Text(
                         w.lemma,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      if (w.transcriptionIpa != null && w.transcriptionIpa!.isNotEmpty)
+                      if (w.transcriptionIpa != null &&
+                          w.transcriptionIpa!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
@@ -87,10 +90,7 @@ class _WordCardState extends State<WordCard> {
                 ),
                 _LevelBadge(level: w.cefrBadge),
                 const SizedBox(width: 8),
-                _SpeakButton(
-                  speaking: _speaking,
-                  onTap: () => _speak(w.lemma),
-                ),
+                _SpeakButton(speaking: _speaking, onTap: () => _speak(w.lemma)),
               ],
             ),
             const SizedBox(height: 8),
@@ -98,26 +98,30 @@ class _WordCardState extends State<WordCard> {
               children: <Widget>[
                 if (w.partOfSpeech != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     margin: const EdgeInsets.only(right: 8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       w.partOfSpeech!,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                Expanded(
-                  child: Text(
-                    tr,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
+                Expanded(child: Text(tr, style: const TextStyle(fontSize: 16))),
               ],
             ),
-            if (w.exampleSentence != null && w.exampleSentence!.isNotEmpty) ...<Widget>[
+            if (w.exampleSentence != null &&
+                w.exampleSentence!.isNotEmpty) ...<Widget>[
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 12),
@@ -181,7 +185,7 @@ class _LevelBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: _color().withOpacity(0.15),
+        color: _color().withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -210,12 +214,16 @@ class _SpeakButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: speaking ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          color: speaking
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(
           speaking ? Icons.volume_up : Icons.volume_up_outlined,
-          color: speaking ? Colors.white : Theme.of(context).colorScheme.primary,
+          color: speaking
+              ? Colors.white
+              : Theme.of(context).colorScheme.primary,
         ),
       ),
     );

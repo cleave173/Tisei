@@ -24,15 +24,15 @@ class TranslationDto {
   final DateTime createdAt;
 
   factory TranslationDto.fromJson(Map<String, dynamic> j) => TranslationDto(
-        id: j['id'] as int,
-        sourceLang: j['source_lang'] as String,
-        targetLang: j['target_lang'] as String,
-        sourceText: j['source_text'] as String,
-        translatedText: j['translated_text'] as String,
-        mode: j['mode'] as String,
-        isFavorite: (j['is_favorite'] as bool?) ?? false,
-        createdAt: DateTime.parse(j['created_at'] as String),
-      );
+    id: j['id'] as int,
+    sourceLang: j['source_lang'] as String,
+    targetLang: j['target_lang'] as String,
+    sourceText: j['source_text'] as String,
+    translatedText: j['translated_text'] as String,
+    mode: j['mode'] as String,
+    isFavorite: (j['is_favorite'] as bool?) ?? false,
+    createdAt: DateTime.parse(j['created_at'] as String),
+  );
 }
 
 class TranslationResultDto {
@@ -50,7 +50,8 @@ class TranslationResultDto {
   final String translatedText;
   final int? historyId;
 
-  factory TranslationResultDto.fromJson(Map<String, dynamic> j) => TranslationResultDto(
+  factory TranslationResultDto.fromJson(Map<String, dynamic> j) =>
+      TranslationResultDto(
         sourceLang: j['source_lang'] as String,
         targetLang: j['target_lang'] as String,
         sourceText: j['source_text'] as String,
@@ -70,23 +71,34 @@ class TranslatorRepository {
     String mode = 'text',
     bool saveHistory = true,
   }) async {
-    final dynamic data = await _api.post('/translator/text', body: {
-      'text': text,
-      'source_lang': sourceLang,
-      'target_lang': targetLang,
-      'mode': mode,
-      'save_history': saveHistory,
-    });
-    return TranslationResultDto.fromJson(Map<String, dynamic>.from(data as Map));
+    final dynamic data = await _api.post(
+      '/translator/text',
+      body: {
+        'text': text,
+        'source_lang': sourceLang,
+        'target_lang': targetLang,
+        'mode': mode,
+        'save_history': saveHistory,
+      },
+    );
+    return TranslationResultDto.fromJson(
+      Map<String, dynamic>.from(data as Map),
+    );
   }
 
-  Future<List<TranslationDto>> history({bool favoritesOnly = false, int limit = 50}) async {
+  Future<List<TranslationDto>> history({
+    bool favoritesOnly = false,
+    int limit = 50,
+  }) async {
     final dynamic data = await _api.get(
       '/translator/history',
       query: {'favorites_only': favoritesOnly, 'limit': limit},
     );
     return (data as List)
-        .map((dynamic e) => TranslationDto.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (dynamic e) =>
+              TranslationDto.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
@@ -95,10 +107,13 @@ class TranslatorRepository {
     return TranslationDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
 
-  Future<void> deleteItem(int id) async => _api.delete('/translator/history/$id');
+  Future<void> deleteItem(int id) async =>
+      _api.delete('/translator/history/$id');
 
   Future<void> clearHistory() async => _api.delete('/translator/history');
 }
 
 final Provider<TranslatorRepository> translatorRepositoryProvider =
-    Provider<TranslatorRepository>((Ref ref) => TranslatorRepository(ref.read(apiClientProvider)));
+    Provider<TranslatorRepository>(
+      (Ref ref) => TranslatorRepository(ref.read(apiClientProvider)),
+    );

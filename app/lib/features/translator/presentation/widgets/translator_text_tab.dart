@@ -44,7 +44,11 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
     try {
       final TranslationResultDto r = await ref
           .read(translatorRepositoryProvider)
-          .translate(text: _input.text, sourceLang: pair.source, targetLang: pair.target);
+          .translate(
+            text: _input.text,
+            sourceLang: pair.source,
+            targetLang: pair.target,
+          );
       setState(() {
         _output = r.translatedText;
         _historyId = r.historyId;
@@ -77,12 +81,19 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
             color: Colors.orange.shade100,
             child: Row(
               children: <Widget>[
-                Icon(Icons.offline_bolt_rounded, size: 14, color: Colors.orange.shade800),
+                Icon(
+                  Icons.offline_bolt_rounded,
+                  size: 14,
+                  color: Colors.orange.shade800,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'translator.offline_mode'.tr(),
-                    style: TextStyle(fontSize: 12, color: Colors.orange.shade900),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange.shade900,
+                    ),
                   ),
                 ),
               ],
@@ -97,14 +108,22 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
                 TextField(
                   controller: _input,
                   maxLines: 4,
-                  decoration: InputDecoration(hintText: 'translator.input_hint'.tr()),
+                  decoration: InputDecoration(
+                    hintText: 'translator.input_hint'.tr(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: _busy ? null : _translate,
                   icon: _busy
                       ? const SizedBox(
-                          width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Icon(Icons.translate),
                   label: Text('translator.translate'.tr()),
                 ),
@@ -131,13 +150,16 @@ class _TranslatorTextTabState extends ConsumerState<TranslatorTextTab> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.copy),
-                              onPressed: () =>
-                                  Clipboard.setData(ClipboardData(text: _output)),
+                              onPressed: () => Clipboard.setData(
+                                ClipboardData(text: _output),
+                              ),
                             ),
                             if (_historyId != null)
                               IconButton(
                                 icon: Icon(
-                                  _isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+                                  _isFavorite
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
                                   color: _isFavorite ? Colors.amber : null,
                                 ),
                                 onPressed: () async {

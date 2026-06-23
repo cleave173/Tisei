@@ -59,6 +59,30 @@ _NUMBER_WORDS_TENS = {
     80: "eighty",
     90: "ninety",
 }
+_HOMOPHONE_GROUPS = (
+    ("eye", "i", "aye"),
+    ("ear", "year"),
+    ("see", "sea"),
+    ("hear", "here"),
+    ("to", "too", "two"),
+    ("for", "four"),
+    ("one", "won"),
+    ("be", "bee"),
+    ("by", "buy", "bye"),
+    ("no", "know"),
+    ("right", "write"),
+    ("new", "knew"),
+    ("son", "sun"),
+    ("red", "read"),
+    ("blue", "blew"),
+    ("pair", "pear"),
+    ("there", "their", "they're"),
+)
+_HOMOPHONE_CANONICAL = {
+    variant: group[0]
+    for group in _HOMOPHONE_GROUPS
+    for variant in group
+}
 
 
 def _number_to_words(value: int) -> str:
@@ -96,6 +120,18 @@ def _normalize(text: str) -> str:
     return text.strip()
 
 
+def _tokens(text: str) -> list[str]:
+    return _normalize(text).split()
+
+
+def _canonical_token(token: str) -> str:
+    return _HOMOPHONE_CANONICAL.get(token, token)
+
+
+def _canonical_text(text: str) -> str:
+    return " ".join(_canonical_token(token) for token in _tokens(text))
+
+
 def _levenshtein(a: str, b: str) -> int:
     """Iterative DP Levenshtein — small inputs, no external deps."""
     if a == b:
@@ -120,16 +156,40 @@ def _levenshtein(a: str, b: str) -> int:
 
 def _score_text(target: str, recognized: str) -> int:
     """Return 0..100 similarity score."""
-    t = _normalize(target)
-    r = _normalize(recognized)
-    if not t:
+    target_tokens = _tokens(target)
+    recognized_tokens = _tokens(recognized)
+    if not target_tokens:
         return 0
-    if not r:
+    if not recognized_tokens:
         return 0
-    dist = _levenshtein(t, r)
-    longest = max(len(t), len(r))
-    ratio = 1.0 - dist / longest
-    return max(0, min(100, round(ratio * 100)))
+
+    target_text = " ".join(_canonical_token(token) for token in target_tokens)
+    recognized_text = " ".join(
+        _canonical_token(token) for token in recognized_tokens
+    )
+    candidates = {recognized_text}
+
+    # STT often returns an entire phrase ("it is eye") for a one-word prompt.
+    # Score the best same-length window, so the pronounced word can still pass.
+    window_size = len(target_tokens)
+    if len(recognized_tokens) >= window_size:
+        for i in range(len(recognized_tokens) - window_size + 1):
+            candidates.add(
+                " ".join(
+                    _canonical_token(token)
+                    for token in recognized_tokens[i : i + window_size]
+                )
+            )
+
+    best = 0
+    for candidate in candidates:
+        dist = _levenshtein(target_text, candidate)
+        longest = max(len(target_text), len(candidate))
+        if longest == 0:
+            continue
+        ratio = 1.0 - dist / longest
+        best = max(best, round(ratio * 100))
+    return max(0, min(100, best))
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +242,6 @@ async def evaluate_pronunciation(
         fluency_score=None,
         is_pass=is_pass,
         target_normalized=_normalize(payload.target_text),
-        recognized_normalized=_normalize(payload.recognized_text),
+        recognized_normalized=_canonical_text(payload.recognized_text),
         feedback=feedback,
     )

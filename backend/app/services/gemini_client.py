@@ -80,7 +80,7 @@ async def generate_json(
                     exc.response.status_code,
                     exc.response.text[:500],
                 )
-                if exc.response.status_code == 429:
+                if exc.response.status_code in {404, 429, 500, 502, 503, 504}:
                     continue
                 raise GeminiError(f"Gemini HTTP {exc.response.status_code}") from exc
             except httpx.HTTPError as exc:

@@ -12,6 +12,7 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.db.session import engine
 from app.core.limiter import limiter
+from app.services import email_service
 
 
 @asynccontextmanager
@@ -54,6 +55,7 @@ def create_app() -> FastAPI:
             "status": "ok",
             "database": "connected",
             "database_source": settings.database_source,
+            "email": email_service.delivery_status(),
         }
 
     return app

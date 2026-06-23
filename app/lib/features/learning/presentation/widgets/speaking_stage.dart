@@ -77,7 +77,7 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
       _lastResult = null;
     });
 
-    String last = '';
+    String lastRecognized = '';
     await _stt.listen(
       localeId: 'en_US',
       listenOptions: stt.SpeechListenOptions(
@@ -85,8 +85,10 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
         cancelOnError: true,
       ),
       onResult: (r) {
-        last = r.recognizedWords;
-        if (mounted) setState(() => _recognizedDraft = last);
+        final String text = r.recognizedWords.trim();
+        if (text.isEmpty) return;
+        lastRecognized = text;
+        if (mounted) setState(() => _recognizedDraft = text);
       },
     );
     while (_stt.isListening) {
@@ -94,7 +96,10 @@ class _SpeakingStageState extends ConsumerState<SpeakingStage> {
     }
     if (!mounted) return;
     setState(() => _listening = false);
-    await _evaluate(target, last);
+    final String recognized = lastRecognized.isNotEmpty
+        ? lastRecognized
+        : _recognizedDraft;
+    await _evaluate(target, recognized);
   }
 
   Future<void> _stop() async {

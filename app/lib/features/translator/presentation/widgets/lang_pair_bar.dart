@@ -14,10 +14,15 @@ class LangPairBar extends ConsumerWidget {
     Widget dropdown(String value, void Function(String) onChanged) {
       return Expanded(
         child: DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           onChanged: (String? v) => v == null ? null : onChanged(v),
           items: kSupportedLangs
-              .map((l) => DropdownMenuItem<String>(value: l.code, child: Text(l.name)))
+              .map(
+                (l) => DropdownMenuItem<String>(
+                  value: l.code,
+                  child: Text(l.name),
+                ),
+              )
               .toList(),
         ),
       );
@@ -28,10 +33,7 @@ class LangPairBar extends ConsumerWidget {
       child: Row(
         children: <Widget>[
           dropdown(pair.source, ctrl.setSource),
-          IconButton(
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: ctrl.swap,
-          ),
+          IconButton(icon: const Icon(Icons.swap_horiz), onPressed: ctrl.swap),
           dropdown(pair.target, ctrl.setTarget),
         ],
       ),

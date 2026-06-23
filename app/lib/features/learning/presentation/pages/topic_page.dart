@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/app_snack_bar.dart';
 import '../../data/models/learning_models.dart';
 import '../../data/models/vocab_lesson_models.dart';
 import '../../data/vocab_lesson_repository.dart';
@@ -44,7 +45,8 @@ class TopicPage extends ConsumerWidget {
       ),
       body: data.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object e, _) => Center(child: Text('$e')),
+        error: (Object e, _) =>
+            Center(child: Text(AppSnackBar.friendlyMessage(e))),
         data: (VocabLessonsListDto d) {
           if (d.lessons.isEmpty) {
             return Center(child: Text('learning.no_lessons'.tr()));

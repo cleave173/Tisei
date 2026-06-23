@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../data/models/learning_models.dart';
 
 /// A flashcard for a single [WordDto]. Tap to flip between:
@@ -189,11 +188,16 @@ class _CardBack extends StatelessWidget {
   Widget build(BuildContext context) {
     final String localeCode = Localizations.localeOf(context).languageCode;
     final String translation = word.localizedTranslation(localeCode);
-    final String? exampleTranslation = word.localizedExampleTranslation(localeCode);
+    final String? exampleTranslation = word.localizedExampleTranslation(
+      localeCode,
+    );
 
     return _CardShell(
       color: Colors.white,
-      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25), width: 1.5),
+      border: Border.all(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+        width: 1.5,
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(

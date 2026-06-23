@@ -12,12 +12,13 @@ class AssessmentRepository {
     String language = 'en',
     String? translationLang,
   }) async {
+    final Map<String, dynamic> query = <String, dynamic>{'language': language};
+    if (translationLang != null) {
+      query['translation_lang'] = translationLang;
+    }
     final dynamic data = await _api.post(
       '/assessments/placement/start',
-      query: <String, dynamic>{
-        'language': language,
-        if (translationLang != null) 'translation_lang': translationLang,
-      },
+      query: query,
     );
     return AssessmentStartDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -27,15 +28,20 @@ class AssessmentRepository {
     required List<({int wordId, String chosen})> answers,
     String? translationLang,
   }) async {
+    final Map<String, dynamic> body = <String, dynamic>{
+      'attempt_id': attemptId,
+      'answers': answers
+          .map(
+            (a) => <String, dynamic>{'word_id': a.wordId, 'chosen': a.chosen},
+          )
+          .toList(),
+    };
+    if (translationLang != null) {
+      body['translation_lang'] = translationLang;
+    }
     final dynamic data = await _api.post(
       '/assessments/placement/submit',
-      body: <String, dynamic>{
-        'attempt_id': attemptId,
-        'answers': answers
-            .map((a) => <String, dynamic>{'word_id': a.wordId, 'chosen': a.chosen})
-            .toList(),
-        if (translationLang != null) 'translation_lang': translationLang,
-      },
+      body: body,
     );
     return AssessmentResultDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -44,12 +50,13 @@ class AssessmentRepository {
     String language = 'en',
     String? translationLang,
   }) async {
+    final Map<String, dynamic> query = <String, dynamic>{'language': language};
+    if (translationLang != null) {
+      query['translation_lang'] = translationLang;
+    }
     final dynamic data = await _api.post(
       '/assessments/level-up/start',
-      query: <String, dynamic>{
-        'language': language,
-        if (translationLang != null) 'translation_lang': translationLang,
-      },
+      query: query,
     );
     return AssessmentStartDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -59,15 +66,20 @@ class AssessmentRepository {
     required List<({int wordId, String chosen})> answers,
     String? translationLang,
   }) async {
+    final Map<String, dynamic> body = <String, dynamic>{
+      'attempt_id': attemptId,
+      'answers': answers
+          .map(
+            (a) => <String, dynamic>{'word_id': a.wordId, 'chosen': a.chosen},
+          )
+          .toList(),
+    };
+    if (translationLang != null) {
+      body['translation_lang'] = translationLang;
+    }
     final dynamic data = await _api.post(
       '/assessments/level-up/submit',
-      body: <String, dynamic>{
-        'attempt_id': attemptId,
-        'answers': answers
-            .map((a) => <String, dynamic>{'word_id': a.wordId, 'chosen': a.chosen})
-            .toList(),
-        if (translationLang != null) 'translation_lang': translationLang,
-      },
+      body: body,
     );
     return AssessmentResultDto.fromJson(Map<String, dynamic>.from(data as Map));
   }
@@ -83,13 +95,11 @@ class AssessmentRepository {
 
 final Provider<AssessmentRepository> assessmentRepositoryProvider =
     Provider<AssessmentRepository>(
-  (Ref ref) => AssessmentRepository(ref.read(apiClientProvider)),
-);
+      (Ref ref) => AssessmentRepository(ref.read(apiClientProvider)),
+    );
 
 final FutureProvider<LevelStatusDto> levelStatusProvider =
-    FutureProvider<LevelStatusDto>(
-  (Ref ref) {
-    ref.watch(authControllerProvider);
-    return ref.read(assessmentRepositoryProvider).getStatus();
-  },
-);
+    FutureProvider<LevelStatusDto>((Ref ref) {
+      ref.watch(authControllerProvider);
+      return ref.read(assessmentRepositoryProvider).getStatus();
+    });

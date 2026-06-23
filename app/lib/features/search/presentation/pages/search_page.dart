@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_snack_bar.dart';
 import '../../../learning/data/learning_repository.dart';
 import '../../../learning/data/models/learning_models.dart';
@@ -21,7 +20,14 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
-  static const List<String> _levels = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  static const List<String> _levels = <String>[
+    'A1',
+    'A2',
+    'B1',
+    'B2',
+    'C1',
+    'C2',
+  ];
   static const int _pageSize = 100;
 
   String? _level = 'A1';
@@ -69,13 +75,17 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final int mySeq = ++_reqSeq;
     setState(() => _loading = true);
     try {
-      final List<WordDto> page = await ref.read(learningRepositoryProvider).searchWords(
+      final List<WordDto> page = await ref
+          .read(learningRepositoryProvider)
+          .searchWords(
             level: _level,
             query: _query.isEmpty ? null : _query,
             limit: _pageSize,
             offset: _items.length,
           );
-      if (mySeq != _reqSeq || !mounted) return; // filters changed — drop stale response
+      if (mySeq != _reqSeq || !mounted) {
+        return; // filters changed — drop stale response
+      }
       setState(() {
         _items.addAll(page);
         if (page.length < _pageSize) _hasMore = false;
@@ -150,10 +160,17 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: <Widget>[
-                _Chip(label: 'common.all'.tr(), selected: _level == null,
-                    onTap: () => _setLevel(null)),
+                _Chip(
+                  label: 'common.all'.tr(),
+                  selected: _level == null,
+                  onTap: () => _setLevel(null),
+                ),
                 for (final String l in _levels)
-                  _Chip(label: l, selected: _level == l, onTap: () => _setLevel(l)),
+                  _Chip(
+                    label: l,
+                    selected: _level == l,
+                    onTap: () => _setLevel(l),
+                  ),
               ],
             ),
           ),
@@ -188,16 +205,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               Text(
                 AppSnackBar.friendlyMessage(_error),
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: const Color(0xFFC62828)),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFFC62828),
+                ),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _reload,
                 style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFC62828)),
+                  backgroundColor: const Color(0xFFC62828),
+                ),
                 icon: const Icon(Icons.refresh_rounded),
                 label: Text('common.retry'.tr()),
               ),
@@ -216,7 +233,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       controller: _scroll,
       padding: const EdgeInsets.all(16),
       itemCount: _items.length + (_hasMore ? 1 : 0),
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (BuildContext c, int i) {
         if (i >= _items.length) {
           return const Padding(
@@ -231,7 +248,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.selected, required this.onTap});
+  const _Chip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -244,7 +265,9 @@ class _Chip extends StatelessWidget {
         label: Text(label),
         selected: selected,
         onSelected: (_) => onTap(),
-        selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+        selectedColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.2),
       ),
     );
   }

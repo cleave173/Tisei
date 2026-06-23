@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,17 +18,28 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? query}) async {
+  Future<dynamic> post(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? query,
+  }) async {
     try {
-      final Response<dynamic> r =
-          await _dio.post(path, data: body, queryParameters: query);
+      final Response<dynamic> r = await _dio.post(
+        path,
+        data: body,
+        queryParameters: query,
+      );
       return r.data;
     } on DioException catch (e) {
       throw ApiException.fromDio(e);
     }
   }
 
-  Future<dynamic> uploadFile(String path, String filePath, {String fieldName = 'file'}) async {
+  Future<dynamic> uploadFile(
+    String path,
+    String filePath, {
+    String fieldName = 'file',
+  }) async {
     try {
       final FormData form = FormData.fromMap(<String, dynamic>{
         fieldName: await MultipartFile.fromFile(filePath),

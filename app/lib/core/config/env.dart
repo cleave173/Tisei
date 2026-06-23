@@ -1,11 +1,11 @@
-import 'dart:io' show Platform;
-
 /// Compile-time / runtime environment configuration.
 /// Override with `--dart-define=API_BASE_URL=https://...` when building.
 class Env {
   const Env._();
 
-  static const String _apiBaseUrlOverride = String.fromEnvironment('API_BASE_URL');
+  static const String _apiBaseUrlOverride = String.fromEnvironment(
+    'API_BASE_URL',
+  );
 
   /// Android emulator needs 10.0.2.2 to reach host machine. iOS sim / macOS use localhost.
   static String get apiBaseUrl {
@@ -16,14 +16,6 @@ class Env {
   /// Backend root URL (no /api/v1) — used to resolve relative asset URLs like /uploads/...
   static String get backendBaseUrl =>
       apiBaseUrl.replaceAll(RegExp(r'/api/v1.*$'), '');
-
-  static bool _isAndroid() {
-    try {
-      return Platform.isAndroid;
-    } catch (_) {
-      return false; // web
-    }
-  }
 
   static const String libreTranslateUrl = String.fromEnvironment(
     'LIBRETRANSLATE_URL',

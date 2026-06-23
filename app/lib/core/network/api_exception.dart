@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 /// Normalized exception thrown by API client for UI to consume.
@@ -15,7 +17,10 @@ class ApiException implements Exception {
     if (data is Map && data['detail'] is String) {
       msg = data['detail'] as String;
     } else if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout) {
+        e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.error is SocketException) {
       msg = 'No internet connection';
     } else if (code != null) {
       msg = 'Server error ($code)';

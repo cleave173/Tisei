@@ -54,16 +54,23 @@ class _VocabLessonPageState extends ConsumerState<VocabLessonPage> {
 
   Future<void> _markStage(VocabStage s) async {
     // Snapshot progress BEFORE the network call to detect lesson completion.
-    final VocabProgressDto? currentProgress =
-        ref.read(vocabLessonProvider(_key)).value?.progress;
-    final bool willComplete = currentProgress != null &&
+    final VocabProgressDto? currentProgress = ref
+        .read(vocabLessonProvider(_key))
+        .value
+        ?.progress;
+    final bool willComplete =
+        currentProgress != null &&
         !currentProgress.isCompleted &&
         _willComplete(currentProgress, s);
 
     try {
       final VocabStageResultDto res = await ref
           .read(vocabLessonRepositoryProvider)
-          .markStage(topicId: widget.topicId, lessonIndex: widget.lessonIndex, stage: s);
+          .markStage(
+            topicId: widget.topicId,
+            lessonIndex: widget.lessonIndex,
+            stage: s,
+          );
       // Refresh data so the overview shows the new ✓.
       ref.invalidate(vocabLessonProvider(_key));
       ref.invalidate(vocabLessonsByTopicProvider(widget.topicId));
@@ -100,7 +107,9 @@ class _VocabLessonPageState extends ConsumerState<VocabLessonPage> {
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<VocabLessonDto> data = ref.watch(vocabLessonProvider(_key));
+    final AsyncValue<VocabLessonDto> data = ref.watch(
+      vocabLessonProvider(_key),
+    );
 
     return PopScope(
       // While inside a stage, back-button returns to overview instead of leaving the page.
@@ -110,9 +119,13 @@ class _VocabLessonPageState extends ConsumerState<VocabLessonPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_activeStage == null
-              ? 'lesson.title_n'.tr(args: <String>['${widget.lessonIndex + 1}'])
-              : _stageTitle(_activeStage!)),
+          title: Text(
+            _activeStage == null
+                ? 'lesson.title_n'.tr(
+                    args: <String>['${widget.lessonIndex + 1}'],
+                  )
+                : _stageTitle(_activeStage!),
+          ),
           leading: _activeStage != null
               ? IconButton(
                   icon: const Icon(Icons.menu_book_rounded),
@@ -123,7 +136,8 @@ class _VocabLessonPageState extends ConsumerState<VocabLessonPage> {
         ),
         body: data.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (Object e, _) => Center(child: Text('$e')),
+          error: (Object e, _) =>
+              Center(child: Text(AppSnackBar.friendlyMessage(e))),
           data: (VocabLessonDto lesson) {
             if (_activeStage == null) {
               return _Overview(
@@ -143,11 +157,11 @@ class _VocabLessonPageState extends ConsumerState<VocabLessonPage> {
   }
 
   String _stageTitle(VocabStage s) => switch (s) {
-        VocabStage.cards => 'lesson.stage_cards'.tr(),
-        VocabStage.listening => 'lesson.stage_listening'.tr(),
-        VocabStage.mc => 'lesson.stage_mc'.tr(),
-        VocabStage.speaking => 'lesson.stage_speaking'.tr(),
-      };
+    VocabStage.cards => 'lesson.stage_cards'.tr(),
+    VocabStage.listening => 'lesson.stage_listening'.tr(),
+    VocabStage.mc => 'lesson.stage_mc'.tr(),
+    VocabStage.speaking => 'lesson.stage_speaking'.tr(),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -171,7 +185,9 @@ class _Overview extends StatelessWidget {
         const SizedBox(height: 18),
         _StageTile(
           title: 'lesson.stage_cards'.tr(),
-          subtitle: 'lesson.stage_cards_sub'.tr(args: <String>['${lesson.words.length}']),
+          subtitle: 'lesson.stage_cards_sub'.tr(
+            args: <String>['${lesson.words.length}'],
+          ),
           icon: Icons.menu_book_rounded,
           color: Theme.of(context).colorScheme.primary,
           done: p.cardsDone,
@@ -243,11 +259,16 @@ class _Overview extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Icon(Icons.emoji_events_rounded,
-                      color: AppTheme.successGreen, size: 18),
+                  const Icon(
+                    Icons.emoji_events_rounded,
+                    color: AppTheme.successGreen,
+                    size: 18,
+                  ),
                   const SizedBox(width: 6),
                   Text(
-                    'lesson.completed_badge'.tr(args: <String>['${p.xpEarned}']),
+                    'lesson.completed_badge'.tr(
+                      args: <String>['${p.xpEarned}'],
+                    ),
                     style: const TextStyle(
                       color: AppTheme.successGreen,
                       fontWeight: FontWeight.w700,
@@ -301,7 +322,9 @@ class _HeaderCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'lesson.header_subtitle'.tr(args: <String>['${lesson.words.length}']),
+            'lesson.header_subtitle'.tr(
+              args: <String>['${lesson.words.length}'],
+            ),
             style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 14),
@@ -315,8 +338,10 @@ class _HeaderCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text('$done / 4 ${'lesson.stages_label'.tr()}',
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(
+            '$done / 4 ${'lesson.stages_label'.tr()}',
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -354,7 +379,9 @@ class _StageTile extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: done ? AppTheme.successGreen.withValues(alpha: 0.6) : Colors.black12,
+              color: done
+                  ? AppTheme.successGreen.withValues(alpha: 0.6)
+                  : Colors.black12,
               width: done ? 1.5 : 1,
             ),
           ),
@@ -367,7 +394,11 @@ class _StageTile extends StatelessWidget {
                   color: (locked ? Colors.grey : color).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: locked ? Colors.grey : color, size: 26),
+                child: Icon(
+                  icon,
+                  color: locked ? Colors.grey : color,
+                  size: 26,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -394,7 +425,10 @@ class _StageTile extends StatelessWidget {
                 ),
               ),
               if (done)
-                const Icon(Icons.check_circle_rounded, color: AppTheme.successGreen)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppTheme.successGreen,
+                )
               else if (locked)
                 const Icon(Icons.lock_rounded, color: Colors.grey)
               else
@@ -429,7 +463,10 @@ class _StageHost extends StatelessWidget {
       case VocabStage.listening:
         return ListeningStage(words: lesson.words, onCompleted: onCompleted);
       case VocabStage.mc:
-        return MultipleChoiceStage(words: lesson.words, onCompleted: onCompleted);
+        return MultipleChoiceStage(
+          words: lesson.words,
+          onCompleted: onCompleted,
+        );
       case VocabStage.speaking:
         return SpeakingStage(words: lesson.words, onCompleted: onCompleted);
     }

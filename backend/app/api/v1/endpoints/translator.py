@@ -1,3 +1,5 @@
+from html import unescape
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, select
@@ -7,8 +9,47 @@ from app.api.deps import get_current_user, get_db
 from app.core.config import settings
 from app.models import TranslationHistory, TranslationMode, User
 from app.schemas.translator import HistoryItemOut, TranslateRequest, TranslateResponse
+from app.services.gemini_client import GeminiError, generate_json
 
 router = APIRouter()
+
+_LANGUAGE_NAMES = {
+    "en": "English",
+    "ru": "Russian",
+    "kk": "Kazakh",
+    "es": "Spanish",
+    "de": "German",
+    "fr": "French",
+    "zh": "Chinese",
+}
+
+
+async def _translate_with_gemini(payload: TranslateRequest) -> str:
+    source = _LANGUAGE_NAMES.get(payload.source_lang, payload.source_lang)
+    target = _LANGUAGE_NAMES.get(payload.target_lang, payload.target_lang)
+    data = await generate_json(
+        system=(
+            "You are a careful translation engine for a language-learning app. "
+            "Translate naturally and preserve the original meaning, tone, names, "
+            "numbers, punctuation, and line breaks. Return only JSON."
+        ),
+        prompt=(
+            f"Translate from {source} ({payload.source_lang}) to "
+            f"{target} ({payload.target_lang}).\n\n"
+            "Return JSON exactly in this shape:\n"
+            '{"translated_text":"..."}\n\n'
+            f"Text:\n{payload.text}"
+        ),
+        temperature=0.2,
+        max_output_tokens=2048,
+        timeout_s=20.0,
+    )
+    if not isinstance(data, dict):
+        raise GeminiError("Gemini translation returned non-object JSON")
+    translated = str(data.get("translated_text") or "").strip()
+    if not translated:
+        raise GeminiError("Gemini translation returned empty text")
+    return translated
 
 
 async def _translate_with_libretranslate(payload: TranslateRequest) -> str:
@@ -23,7 +64,10 @@ async def _translate_with_libretranslate(payload: TranslateRequest) -> str:
         response = await client.post(url, json=body)
         response.raise_for_status()
         data = response.json()
-    return data.get("translatedText", "")
+    translated = str(data.get("translatedText") or "").strip()
+    if not translated:
+        raise httpx.HTTPError("LibreTranslate returned an empty translation")
+    return translated
 
 
 async def _translate_with_mymemory(payload: TranslateRequest) -> str:
@@ -40,7 +84,7 @@ async def _translate_with_mymemory(payload: TranslateRequest) -> str:
     translated = data.get("responseData", {}).get("translatedText", "")
     if not translated:
         raise httpx.HTTPError("MyMemory returned an empty translation")
-    return translated
+    return unescape(translated).strip()
 
 
 @router.post("/text", response_model=TranslateResponse)
@@ -51,12 +95,18 @@ async def translate_text(
 ) -> TranslateResponse:
     """Proxy text translation to the configured provider, save to history."""
     try:
-        translated = await _translate_with_libretranslate(payload)
-    except httpx.HTTPError:
+        translated = await _translate_with_gemini(payload)
+    except GeminiError:
         try:
-            translated = await _translate_with_mymemory(payload)
+            translated = await _translate_with_libretranslate(payload)
         except httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"Translator error: {exc}") from exc
+            try:
+                translated = await _translate_with_mymemory(payload)
+            except httpx.HTTPError as fallback_exc:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Translator error: {fallback_exc}",
+                ) from fallback_exc
 
     history_id: int | None = None
     if payload.save_history and translated:

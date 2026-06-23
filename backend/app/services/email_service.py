@@ -31,6 +31,8 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
+SUPPORTED_BACKENDS = {"console", "smtp", "resend", "gmail_api"}
+
 
 async def send_reset_code(to_email: str, code: str) -> None:
     """Send the 6-digit password-reset OTP to *to_email*."""
@@ -49,14 +51,77 @@ async def send_reset_code(to_email: str, code: str) -> None:
     """
     text_body = f"Your Tisei password reset code: {code}\nExpires in 15 minutes."
 
-    if settings.email_backend == "smtp":
+    backend = _email_backend()
+
+    if backend == "smtp":
         await _send_smtp(to_email, subject, html_body, text_body)
-    elif settings.email_backend == "resend":
+    elif backend == "resend":
         await _send_resend(to_email, subject, html_body, text_body)
-    elif settings.email_backend == "gmail_api":
+    elif backend == "gmail_api":
         await _send_gmail_api(to_email, subject, html_body, text_body)
     else:
+        log.warning("EMAIL_BACKEND=console; reset code for %s was not sent by email", to_email)
         _console(to_email, subject, code)
+
+
+def delivery_status() -> dict[str, object]:
+    """Return a secret-free summary of the active email backend."""
+    backend = _email_backend()
+    missing: list[str] = []
+    warnings: list[str] = []
+    from_address = _email_from()
+
+    if backend not in SUPPORTED_BACKENDS:
+        return {
+            "backend": backend,
+            "ready": False,
+            "missing": [],
+            "warnings": [f"Unsupported EMAIL_BACKEND={backend!r}"],
+            "from": from_address,
+        }
+
+    if backend == "console":
+        warnings.append("console backend prints reset codes to logs and does not send email")
+    elif backend == "smtp":
+        missing = [
+            name
+            for name, value in {
+                "SMTP_HOST": settings.smtp_host,
+                "SMTP_USER": settings.smtp_user,
+                "SMTP_PASSWORD": settings.smtp_password,
+                "SMTP_FROM": _smtp_from(),
+            }.items()
+            if not _clean_env(str(value))
+        ]
+    elif backend == "resend":
+        missing = [
+            name
+            for name, value in {
+                "RESEND_API_KEY": settings.resend_api_key,
+                "SMTP_FROM": _smtp_from(),
+            }.items()
+            if not _clean_env(value)
+        ]
+    elif backend == "gmail_api":
+        missing = [
+            name
+            for name, value in {
+                "GMAIL_CLIENT_ID": settings.gmail_client_id,
+                "GMAIL_CLIENT_SECRET": settings.gmail_client_secret,
+                "GMAIL_REFRESH_TOKEN": settings.gmail_refresh_token,
+                "GMAIL_FROM": _email_from(),
+            }.items()
+            if not _clean_env(value)
+        ]
+        from_address = _email_from()
+
+    return {
+        "backend": backend,
+        "ready": not missing and backend != "console",
+        "missing": missing,
+        "warnings": warnings,
+        "from": from_address,
+    }
 
 
 # ── Backends ──────────────────────────────────────────────────────────────────
@@ -66,7 +131,7 @@ async def _send_smtp(to: str, subject: str, html: str, text: str) -> None:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = settings.smtp_from
+    msg["From"] = _smtp_from()
     msg["To"] = to
     msg.attach(MIMEText(text, "plain"))
     msg.attach(MIMEText(html, "html"))
@@ -74,10 +139,10 @@ async def _send_smtp(to: str, subject: str, html: str, text: str) -> None:
     try:
         await aiosmtplib.send(
             msg,
-            hostname=settings.smtp_host,
+            hostname=_clean_env(settings.smtp_host),
             port=settings.smtp_port,
-            username=settings.smtp_user,
-            password=settings.smtp_password,
+            username=_clean_env(settings.smtp_user),
+            password=_clean_env(settings.smtp_password),
             start_tls=settings.smtp_tls,
             timeout=settings.smtp_timeout_seconds,
         )
@@ -90,11 +155,12 @@ async def _send_smtp(to: str, subject: str, html: str, text: str) -> None:
 async def _send_resend(to: str, subject: str, html: str, text: str) -> None:
     import httpx
 
-    if not settings.resend_api_key:
+    resend_api_key = _clean_env(settings.resend_api_key)
+    if not resend_api_key:
         raise RuntimeError("RESEND_API_KEY is required for EMAIL_BACKEND=resend")
 
     payload = {
-        "from": settings.smtp_from,
+        "from": _smtp_from(),
         "to": [to],
         "subject": subject,
         "html": html,
@@ -104,7 +170,7 @@ async def _send_resend(to: str, subject: str, html: str, text: str) -> None:
         response = await client.post(
             "https://api.resend.com/emails",
             headers={
-                "Authorization": f"Bearer {settings.resend_api_key}",
+                "Authorization": f"Bearer {resend_api_key}",
                 "Content-Type": "application/json",
             },
             json=payload,
@@ -138,7 +204,7 @@ async def _send_gmail_api(to: str, subject: str, html: str, text: str) -> None:
         _mask_credential(client_id),
         _mask_credential(client_secret),
         _mask_credential(refresh_token),
-        settings.gmail_from or settings.smtp_from or settings.smtp_user,
+        _email_from() or _clean_env(settings.smtp_user),
     )
 
     async with httpx.AsyncClient(timeout=settings.smtp_timeout_seconds) as client:
@@ -159,7 +225,7 @@ async def _send_gmail_api(to: str, subject: str, html: str, text: str) -> None:
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = settings.gmail_from or settings.smtp_from or settings.smtp_user
+        msg["From"] = _email_from() or _clean_env(settings.smtp_user)
         msg["To"] = to
         msg.attach(MIMEText(text, "plain"))
         msg.attach(MIMEText(html, "html"))
@@ -191,7 +257,22 @@ def _console(to: str, subject: str, code: str) -> None:
 
 
 def _clean_env(value: str | None) -> str:
-    return (value or "").strip()
+    value = (value or "").strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1].strip()
+    return value
+
+
+def _email_backend() -> str:
+    return _clean_env(settings.email_backend).lower() or "console"
+
+
+def _smtp_from() -> str:
+    return _clean_env(settings.smtp_from)
+
+
+def _email_from() -> str:
+    return _clean_env(settings.gmail_from) or _smtp_from()
 
 
 def _mask_credential(value: str) -> str:

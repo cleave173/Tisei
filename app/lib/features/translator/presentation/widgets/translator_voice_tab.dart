@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_snack_bar.dart';
 import '../../data/translator_repository.dart';
 import '../providers/translator_providers.dart';
@@ -68,17 +67,23 @@ class _TranslatorVoiceTabState extends ConsumerState<TranslatorVoiceTab> {
     if (last.trim().isEmpty) return;
 
     try {
-      final TranslationResultDto r = await ref.read(translatorRepositoryProvider).translate(
+      final TranslationResultDto r = await ref
+          .read(translatorRepositoryProvider)
+          .translate(
             text: last,
             sourceLang: fromLeft ? pair.source : pair.target,
             targetLang: fromLeft ? pair.target : pair.source,
             mode: 'voice',
           );
-      setState(() => _messages.add(_VoiceMessage(
+      setState(
+        () => _messages.add(
+          _VoiceMessage(
             fromLeft: fromLeft,
             original: r.sourceText,
             translated: r.translatedText,
-          )));
+          ),
+        ),
+      );
       await _tts.setLanguage(r.targetLang);
       await _tts.speak(r.translatedText);
     } catch (e) {
@@ -98,29 +103,44 @@ class _TranslatorVoiceTabState extends ConsumerState<TranslatorVoiceTab> {
             itemCount: _messages.length,
             itemBuilder: (BuildContext c, int i) {
               final _VoiceMessage m = _messages[i];
-              final Alignment a = m.fromLeft ? Alignment.centerLeft : Alignment.centerRight;
+              final Alignment a = m.fromLeft
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight;
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Align(
                   alignment: a,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(c).size.width * 0.8),
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(c).size.width * 0.8,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: m.fromLeft ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.primary,
+                        color: m.fromLeft
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Theme.of(context).colorScheme.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(m.original,
-                              style: TextStyle(color: m.fromLeft ? Colors.black : Colors.white)),
+                          Text(
+                            m.original,
+                            style: TextStyle(
+                              color: m.fromLeft ? Colors.black : Colors.white,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          Text(m.translated,
-                              style: TextStyle(
-                                  color: m.fromLeft ? Colors.black54 : Colors.white70,
-                                  fontStyle: FontStyle.italic)),
+                          Text(
+                            m.translated,
+                            style: TextStyle(
+                              color: m.fromLeft
+                                  ? Colors.black54
+                                  : Colors.white70,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -157,8 +177,10 @@ class _TranslatorVoiceTabState extends ConsumerState<TranslatorVoiceTab> {
         if (!_ready)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text('translator.stt_unavailable'.tr(),
-                style: const TextStyle(color: Colors.red)),
+            child: Text(
+              'translator.stt_unavailable'.tr(),
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
       ],
     );
@@ -166,7 +188,11 @@ class _TranslatorVoiceTabState extends ConsumerState<TranslatorVoiceTab> {
 }
 
 class _MicButton extends StatelessWidget {
-  const _MicButton({required this.label, required this.active, required this.onPressed});
+  const _MicButton({
+    required this.label,
+    required this.active,
+    required this.onPressed,
+  });
   final String label;
   final bool active;
   final VoidCallback onPressed;
@@ -176,7 +202,9 @@ class _MicButton extends StatelessWidget {
     return FilledButton.icon(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: active ? Colors.red : Theme.of(context).colorScheme.primary,
+        backgroundColor: active
+            ? Colors.red
+            : Theme.of(context).colorScheme.primary,
         minimumSize: const Size.fromHeight(56),
       ),
       icon: const Icon(Icons.mic),
